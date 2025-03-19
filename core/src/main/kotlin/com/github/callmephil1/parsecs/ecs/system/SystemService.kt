@@ -1,30 +1,110 @@
 package com.github.callmephil1.parsecs.ecs.system
 
-internal class SystemService internal constructor(
-    systems: List<System>
-) {
-    private val monitorSystems: MutableList<MonitorSystem> = mutableListOf()
-    private val renderSystems: MutableList<RenderSystem> = mutableListOf()
-    private val updateSystems: MutableList<UpdateSystem> = mutableListOf()
+import com.github.callmephil1.parsecs.ecs.collections.DirectedAcyclicGraph
+import kotlinx.coroutines.*
 
-    init {
-        systems.forEach {
-            addSystem(it)
+interface SystemService {
+    fun engineInitialized()
+    fun engineLoopEnd()
+    fun engineLoopStart()
+    fun renderSystemLoop(delta: Float)
+    fun updateSystemLoop(delta: Float)
+
+    class Configuration {
+        var asynchronous: Boolean = false
+        internal var systems: List<Class<*>> = emptyList()
+
+        fun systems(vararg system: Class<*>) {
+            systems = system.toList()
+        }
+    }
+}
+
+internal class AsynchronousDAGSystemService internal constructor(
+    private val monitorSystems: List<MonitorSystem>,
+    private val renderSystems: List<RenderSystem>,
+    private val updateExecutionSteps: List<List<AsynchronousUpdateSystem>>
+) : SystemService {
+
+    private val scope = CoroutineScope(Dispatchers.Default)
+
+    override fun engineInitialized() {
+        mutableSetOf<System>().also {
+            it.addAll(monitorSystems)
+            it.addAll(renderSystems)
+            it.addAll(updateExecutionSteps.flatten())
+        }.forEach {
+            it.engineInitialized()
         }
     }
 
-    private fun addSystem(system: System) {
-        if (system is MonitorSystem)
-            monitorSystems.add(system)
-
-        if (system is RenderSystem)
-            renderSystems.add(system)
-
-        if (system is UpdateSystem)
-            updateSystems.add(system)
+    override fun engineLoopEnd() {
+        monitorSystems.forEach { it.engineLoopEnd() }
     }
 
-    internal fun engineInitialized() {
+    override fun engineLoopStart() {
+        monitorSystems.forEach { it.engineLoopStart() }
+    }
+
+    override fun renderSystemLoop(delta: Float) {
+        renderSystems.forEach { renderer ->
+            monitorSystems.forEach { it.systemLoopStart(renderer) }
+            renderer.draw(delta)
+            monitorSystems.forEach { it.systemLoopEnd(renderer) }
+        }
+    }
+
+    override fun updateSystemLoop(delta: Float) {
+        for(step in updateExecutionSteps) {
+            val list = ArrayList<Job>(step.size)
+
+            for(system in step) {
+                list.add(scope.launch {
+                    monitorSystems.forEach { it.systemLoopStart(system) }
+                    system.update(delta)
+                    monitorSystems.forEach { it.systemLoopEnd(system) }
+                })
+            }
+            runBlocking {
+                list.joinAll()
+            }
+        }
+    }
+
+    internal class Builder {
+        internal fun build(systems: List<System>): AsynchronousDAGSystemService {
+            val monitorSystems = systems.filterIsInstance<MonitorSystem>()
+            val renderSystems = systems.filterIsInstance<RenderSystem>()
+            val updateSystems = systems.filterIsInstance<AsynchronousUpdateSystem>()
+
+            val dag = DirectedAcyclicGraph<AsynchronousUpdateSystem>()
+            updateSystems.forEach { system ->
+                dag.addWithDependencies(
+                    system,
+                    updateSystems.filter {
+                        system.dependsOn.any { dep ->
+                            dep.isInstance(it)
+                        }
+                    }
+                )
+            }
+
+            return AsynchronousDAGSystemService(
+                monitorSystems = monitorSystems,
+                renderSystems = renderSystems,
+                updateExecutionSteps  = dag.toExecutionSteps()
+            )
+        }
+    }
+}
+
+internal class SynchronousSystemService internal constructor(
+    private val monitorSystems: List<MonitorSystem>,
+    private val renderSystems: List<RenderSystem>,
+    private val updateSystems: List<UpdateSystem>
+) : SystemService {
+
+    override fun engineInitialized() {
         mutableSetOf<System>().also {
             it.addAll(monitorSystems)
             it.addAll(renderSystems)
@@ -34,15 +114,15 @@ internal class SystemService internal constructor(
         }
     }
 
-    internal fun engineLoopEnd() {
+    override fun engineLoopEnd() {
         monitorSystems.forEach { it.engineLoopEnd() }
     }
 
-    internal fun engineLoopStart() {
+    override fun engineLoopStart() {
         monitorSystems.forEach { it.engineLoopStart() }
     }
 
-    internal fun renderSystemLoop(delta: Float) {
+    override fun renderSystemLoop(delta: Float) {
         renderSystems.forEach { renderer ->
             monitorSystems.forEach { it.systemLoopStart(renderer) }
             renderer.draw(delta)
@@ -50,11 +130,25 @@ internal class SystemService internal constructor(
         }
     }
 
-    internal fun updateSystemLoop(delta: Float) {
+    override fun updateSystemLoop(delta: Float) {
         updateSystems.forEach { updater ->
             monitorSystems.forEach { it.systemLoopStart(updater) }
             updater.update(delta)
             monitorSystems.forEach { it.systemLoopEnd(updater) }
+        }
+    }
+
+    internal class Builder {
+        internal fun build(systems: List<System>): SynchronousSystemService {
+            val monitorSystems = systems.filterIsInstance<MonitorSystem>()
+            val renderSystems = systems.filterIsInstance<RenderSystem>()
+            val updateSystems = systems.filterIsInstance<UpdateSystem>()
+
+            return SynchronousSystemService(
+                monitorSystems = monitorSystems,
+                renderSystems = renderSystems,
+                updateSystems = updateSystems
+            )
         }
     }
 }

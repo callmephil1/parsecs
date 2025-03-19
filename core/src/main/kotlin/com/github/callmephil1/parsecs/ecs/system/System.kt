@@ -19,3 +19,7 @@ interface RenderSystem: System {
 interface UpdateSystem: System {
     fun update(delta: Float)
 }
+
+interface AsynchronousUpdateSystem : UpdateSystem {
+    val dependsOn: List<Class<*>>
+}

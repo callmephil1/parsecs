@@ -120,11 +120,11 @@ class EntitiesTests {
         }
 
         entities.parallelForEach {
-            parallelTestComponentMapper[it].value = 2
+            parallelTestComponentMapper[it].value += 1
         }
 
         entities.forEach {
-            assertEquals(parallelTestComponentMapper[it].value, 2)
+            assertEquals(parallelTestComponentMapper[it].value, 1)
         }
     }
 

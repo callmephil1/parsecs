@@ -41,8 +41,10 @@ class EngineBuilderTests {
     fun `Create an engine builder and add systems it should build successfully`() {
         val engine = engine {
             systems {
-                add(TestRenderSystem::class.java)
-                add(TestUpdateSystem::class.java)
+                systems = listOf(
+                    TestRenderSystem::class.java,
+                    TestUpdateSystem::class.java
+                )
             }
         }
     }

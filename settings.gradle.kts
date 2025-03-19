@@ -30,3 +30,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "parsecs"
 include("core")
+include("benchmark")

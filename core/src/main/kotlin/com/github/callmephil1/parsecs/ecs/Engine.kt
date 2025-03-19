@@ -2,8 +2,9 @@ package com.github.callmephil1.parsecs.ecs
 
 import com.github.callmephil1.parsecs.ecs.component.ComponentService
 import com.github.callmephil1.parsecs.ecs.entity.EntityService
-import com.github.callmephil1.parsecs.ecs.system.SystemBuilder
+import com.github.callmephil1.parsecs.ecs.system.*
 import com.github.callmephil1.parsecs.ecs.system.SystemService
+import java.lang.System as JSystem
 
 class Engine internal constructor(
     private val di: DependencyInjection,
@@ -11,10 +12,15 @@ class Engine internal constructor(
     private val systemService: SystemService
 ){
     private val stopWatch = StopWatch()
-    private val logger = System.getLogger(Engine::class.qualifiedName)
+    private val logger = JSystem.getLogger(Engine::class.qualifiedName)
 
     fun update(delta: Float) {
         systemService.engineLoopStart()
+
+        val test = Engine::class.  .constructors.forEach {
+
+            it.
+        }
 
         entityService.releaseEntities()
         entityService.updateEntities()
@@ -36,24 +42,30 @@ class Engine internal constructor(
 
     class Builder {
         private val diBuilder = DependencyInjection.Builder()
-        private val systemBuilder = SystemBuilder()
+        private val systemServiceConfig = SystemService.Configuration()
 
         fun build(): Engine {
             diBuilder.singleton(EntityService::class.java)
             diBuilder.singleton(ComponentService::class.java)
 
-            val systemsList = systemBuilder.build()
-            systemsList.forEach {
+            systemServiceConfig.systems.forEach {
                 diBuilder.singleton(it)
             }
 
             val di = diBuilder.build()
             val entityService = di.get(EntityService::class.java)
 
-            val systems = systemsList.map {
-                di.get(it) as com.github.callmephil1.parsecs.ecs.system.System
+            val systemService = if (systemServiceConfig.asynchronous) {
+                AsynchronousDAGSystemService.Builder()
+                    .build(systemServiceConfig.systems.map {
+                        di.get(it) as System
+                    })
+            } else {
+                SynchronousSystemService.Builder()
+                    .build(systemServiceConfig.systems.map {
+                        di.get(it) as System
+                    })
             }
-            val systemService = SystemService(systems)
 
             val engine = Engine(
                 di,
@@ -70,8 +82,8 @@ class Engine internal constructor(
             diBuilder.configure()
         }
 
-        fun systems(configure: SystemBuilder.() -> Unit) {
-            systemBuilder.configure()
+        fun systems(configure: SystemService.Configuration.() -> Unit) {
+            systemServiceConfig.configure()
         }
     }
 }

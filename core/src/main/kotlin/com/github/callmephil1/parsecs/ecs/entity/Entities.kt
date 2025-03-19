@@ -35,7 +35,7 @@ class Entities internal constructor(
         val chunkSize = entities.count / chunkCount
         val jobs = ArrayList<Job>(chunkCount)
 
-        for(i in 0 ..< chunkCount) {
+        for(i in 0 ..< chunkCount - 1) {
             jobs.add(scope.launch {
                 for(idx in i * chunkSize ..< (i + 1) * chunkSize) {
                     val entity = entities[idx]
@@ -46,7 +46,7 @@ class Entities internal constructor(
         }
 
         jobs.add(scope.launch {
-            for(idx in chunkCount * chunkSize ..< entities.count) {
+            for(idx in (chunkCount - 1) * chunkSize ..< entities.count) {
                 val entity = entities[idx]
                 if (entity != null)
                     block(entity)
@@ -131,6 +131,6 @@ class Entities internal constructor(
     }
 
     companion object {
-        private val chunkCount = Runtime.getRuntime().availableProcessors()
+        var chunkCount = 4
     }
 }
