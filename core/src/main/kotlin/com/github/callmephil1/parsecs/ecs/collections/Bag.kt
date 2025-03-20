@@ -24,7 +24,7 @@ class Bag<T>(initialSize: Int = 1) : Iterable<T?> {
 
     fun indexOf(item: T?): Int {
         for (i in 0 ..< count) {
-            if (item?.equals(data[i]) == true)
+            if(item === data[i])
                 return i
         }
         return -1
