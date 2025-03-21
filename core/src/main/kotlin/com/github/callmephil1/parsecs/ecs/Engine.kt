@@ -17,11 +17,6 @@ class Engine internal constructor(
     fun update(delta: Float) {
         systemService.engineLoopStart()
 
-        val test = Engine::class.  .constructors.forEach {
-
-            it.
-        }
-
         entityService.releaseEntities()
         entityService.updateEntities()
         entityService.createEntities()

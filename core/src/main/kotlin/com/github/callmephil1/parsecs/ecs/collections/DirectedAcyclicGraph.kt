@@ -1,10 +1,20 @@
 package com.github.callmephil1.parsecs.ecs.collections
 
-class DirectedAcyclicGraph<T> {
+class CircularReference(
+    first: Any,
+    second: Any
+) : Exception("Circular reference detected for '$first' and '$second'")
+
+class DirectedAcyclicGraph<T : Any> {
     private val adjacencyList = mutableMapOf<T, MutableSet<T>>()
     private val inDegrees = mutableMapOf<T, Int>()
 
     fun addWithDependents(item: T, dependents: List<T>) {
+        dependents.forEach {
+            if (adjacencyList[it]?.contains(item) == true)
+                throw CircularReference(item, it)
+        }
+
         val list = adjacencyList.getOrPut(item) { mutableSetOf() }
         list.addAll(dependents)
         inDegrees.putIfAbsent(item, 0)
@@ -16,6 +26,9 @@ class DirectedAcyclicGraph<T> {
     }
 
     fun addWithDependencies(item: T, dependencies: List<T>) {
+        if (dependencies.isEmpty()) {
+            addWithDependents(item, emptyList())
+        }
         dependencies.forEach {
             addWithDependents(it, listOf(item))
         }

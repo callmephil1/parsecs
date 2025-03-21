@@ -1,6 +1,8 @@
 package collections
 
+import com.github.callmephil1.parsecs.ecs.collections.CircularReference
 import com.github.callmephil1.parsecs.ecs.collections.DirectedAcyclicGraph
+import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -25,5 +27,14 @@ class DirectedAcyclicGraphTests {
         assertEquals(listOf(DAGClass::class.java), steps[0])
         assertEquals(listOf(DAGClass2::class.java, DAGClass3::class.java), steps[1])
         assertEquals(listOf(DAGClass5::class.java, DAGClass4::class.java), steps[2])
+    }
+
+    @Test
+    fun `Create a DAG with circular dependency and should throw CircularReference exception`() {
+        assertThrows<CircularReference> {
+            val dag = DirectedAcyclicGraph<Class<*>>()
+            dag.addWithDependents(DAGClass::class.java, listOf(DAGClass2::class.java))
+            dag.addWithDependents(DAGClass2::class.java, listOf(DAGClass::class.java))
+        }
     }
 }

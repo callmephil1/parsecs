@@ -6,7 +6,9 @@ class Pool<T>(
     clazz: Class<T>,
     private val capacity: Int = Int.MAX_VALUE
 ) {
-    private val ctor = clazz.getDeclaredConstructor()
+    private val ctor = clazz.getDeclaredConstructor().apply {
+        isAccessible = true
+    }
     private val pool: Stack<T> = Stack()
 
     fun obtain(): T {

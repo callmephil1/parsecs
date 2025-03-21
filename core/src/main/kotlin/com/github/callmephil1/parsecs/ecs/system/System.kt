@@ -21,5 +21,11 @@ interface UpdateSystem: System {
 }
 
 interface AsynchronousUpdateSystem : UpdateSystem {
-    val dependsOn: List<Class<*>>
+    val descriptor: SystemDescriptor
+
+    fun systemDescriptor(configure: SystemDescriptor.Builder.() -> Unit): SystemDescriptor {
+        val builder = SystemDescriptor.Builder()
+        builder.configure()
+        return builder.build()
+    }
 }

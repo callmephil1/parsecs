@@ -23,7 +23,7 @@ interface SystemService {
 internal class AsynchronousDAGSystemService internal constructor(
     private val monitorSystems: List<MonitorSystem>,
     private val renderSystems: List<RenderSystem>,
-    private val updateExecutionSteps: List<List<AsynchronousUpdateSystem>>
+    val updateExecutionSteps: List<List<AsynchronousUpdateSystem>>
 ) : SystemService {
 
     private val scope = CoroutineScope(Dispatchers.Default)
@@ -79,20 +79,28 @@ internal class AsynchronousDAGSystemService internal constructor(
 
             val dag = DirectedAcyclicGraph<AsynchronousUpdateSystem>()
             updateSystems.forEach { system ->
+
+                val systemDeps = system.descriptor.dependencies.filterIsInstance<Dependency.System>().map { it.clazz }
                 dag.addWithDependencies(
                     system,
-                    updateSystems.filter {
-                        system.dependsOn.any { dep ->
-                            dep.isInstance(it)
-                        }
+                    systemDeps.mapNotNull { dep ->
+                        updateSystems.firstOrNull { it != system && dep.isInstance(it) }
                     }
+                )
+
+                val groupDeps = system.descriptor.dependencies.filterIsInstance<Dependency.Group>().map { it.name }
+                dag.addWithDependencies(
+                    system,
+                    groupDeps.map { group ->
+                        updateSystems.filter { it != system && it.descriptor.groups.contains(group) }
+                    }.flatten()
                 )
             }
 
             return AsynchronousDAGSystemService(
                 monitorSystems = monitorSystems,
                 renderSystems = renderSystems,
-                updateExecutionSteps  = dag.toExecutionSteps()
+                updateExecutionSteps = dag.toExecutionSteps()
             )
         }
     }

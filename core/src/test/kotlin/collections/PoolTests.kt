@@ -3,7 +3,7 @@ package collections
 import com.github.callmephil1.parsecs.ecs.collections.Pool
 import kotlin.test.*
 
-data class TestComponent(
+private data class TestComponent(
     var number: Int = -1
 )
 
