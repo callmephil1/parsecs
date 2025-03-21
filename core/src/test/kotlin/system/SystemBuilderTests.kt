@@ -1,7 +1,7 @@
 package system
 
 import com.github.callmephil1.parsecs.ecs.collections.CircularReference
-import com.github.callmephil1.parsecs.ecs.system.AsynchronousDAGSystemService
+import com.github.callmephil1.parsecs.ecs.system.AsynchronousSequentialSystemService
 import com.github.callmephil1.parsecs.ecs.system.AsynchronousUpdateSystem
 import com.github.callmephil1.parsecs.ecs.system.SystemDescriptor
 import org.junit.jupiter.api.assertThrows
@@ -67,7 +67,7 @@ private object SystemCircurlarB : AsynchronousUpdateSystem {
 class SystemBuilderTests {
     @Test
     fun `Build an AsynchronousDAGSystemService with systems and groups and steps are arranged correctly`() {
-        val service = AsynchronousDAGSystemService.Builder().build(
+        val service = AsynchronousSequentialSystemService.Builder().build(
             listOf(
                 SystemA,
                 SystemB,
@@ -88,7 +88,7 @@ class SystemBuilderTests {
     @Test
     fun `When building an AsynchronousDAGSystemService if there is a circular reference then exception should be thrown`() {
         assertThrows<CircularReference> {
-            AsynchronousDAGSystemService.Builder().build(
+            AsynchronousSequentialSystemService.Builder().build(
                 listOf(
                     SystemCircurlarA,
                     SystemCircurlarB

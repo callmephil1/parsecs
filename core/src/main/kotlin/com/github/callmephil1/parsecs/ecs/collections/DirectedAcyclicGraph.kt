@@ -34,6 +34,8 @@ class DirectedAcyclicGraph<T : Any> {
         }
     }
 
+    fun getDependencyGraph() : Map<T, Set<T>> = adjacencyList.map { it.key to it.value.toSet() }.toMap()
+
     fun toExecutionSteps(): List<List<T>> {
         val deque = ArrayDeque<T>()
 

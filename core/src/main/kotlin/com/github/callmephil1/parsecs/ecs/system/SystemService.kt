@@ -20,7 +20,97 @@ interface SystemService {
     }
 }
 
-internal class AsynchronousDAGSystemService internal constructor(
+internal class AsynchronousSystemService(
+    private val monitorSystems: List<MonitorSystem>,
+    private val renderSystems: List<RenderSystem>,
+    private val updateSystemDependencyGraph: Map<AsynchronousUpdateSystem, Set<AsynchronousUpdateSystem>>,
+    private val updateExecutionSteps: List<List<AsynchronousUpdateSystem>>
+) : SystemService {
+    private val scope = CoroutineScope(Dispatchers.Default)
+
+    override fun engineInitialized() {
+        mutableSetOf<System>().also {
+            it.addAll(monitorSystems)
+            it.addAll(renderSystems)
+            it.addAll(updateSystemDependencyGraph.keys)
+        }.forEach {
+            it.engineInitialized()
+        }
+    }
+
+    override fun engineLoopEnd() {
+        monitorSystems.forEach { it.engineLoopEnd() }
+    }
+
+    override fun engineLoopStart() {
+        monitorSystems.forEach { it.engineLoopStart() }
+    }
+
+    override fun renderSystemLoop(delta: Float) {
+        renderSystems.forEach { renderer ->
+            monitorSystems.forEach { it.systemLoopStart(renderer) }
+            renderer.draw(delta)
+            monitorSystems.forEach { it.systemLoopEnd(renderer) }
+        }
+    }
+
+    override fun updateSystemLoop(delta: Float) {
+        val jobs = ArrayList<Job>(updateSystemDependencyGraph.keys.size)
+        val systemJobs = mutableMapOf<AsynchronousUpdateSystem, Job>()
+
+        for (step in updateExecutionSteps) {
+            for (system in step) {
+                systemJobs[system] = scope.launch {
+                    updateSystemDependencyGraph[system]!!.map { systemJobs[it]!! }.joinAll()
+                    monitorSystems.forEach { it.systemLoopStart(system) }
+                    system.update(delta)
+                    monitorSystems.forEach { it.systemLoopEnd(system) }
+                }
+            }
+        }
+
+        runBlocking {
+            jobs.joinAll()
+        }
+    }
+
+    internal class Builder {
+        internal fun build(systems: List<System>): AsynchronousSystemService {
+            val monitorSystems = systems.filterIsInstance<MonitorSystem>()
+            val renderSystems = systems.filterIsInstance<RenderSystem>()
+            val updateSystems = systems.filterIsInstance<AsynchronousUpdateSystem>()
+
+            val dag = DirectedAcyclicGraph<AsynchronousUpdateSystem>()
+            updateSystems.forEach { system ->
+
+                val systemDeps = system.descriptor.dependencies.filterIsInstance<Dependency.System>().map { it.clazz }
+                dag.addWithDependencies(
+                    system,
+                    systemDeps.mapNotNull { dep ->
+                        updateSystems.firstOrNull { it != system && dep.isInstance(it) }
+                    }
+                )
+
+                val groupDeps = system.descriptor.dependencies.filterIsInstance<Dependency.Group>().map { it.name }
+                dag.addWithDependencies(
+                    system,
+                    groupDeps.map { group ->
+                        updateSystems.filter { it != system && it.descriptor.groups.contains(group) }
+                    }.flatten()
+                )
+            }
+
+            return AsynchronousSystemService(
+                monitorSystems = monitorSystems,
+                renderSystems = renderSystems,
+                updateSystemDependencyGraph = dag.getDependencyGraph(),
+                updateExecutionSteps = dag.toExecutionSteps()
+            )
+        }
+    }
+}
+
+internal class AsynchronousSequentialSystemService internal constructor(
     private val monitorSystems: List<MonitorSystem>,
     private val renderSystems: List<RenderSystem>,
     val updateExecutionSteps: List<List<AsynchronousUpdateSystem>>
@@ -72,7 +162,7 @@ internal class AsynchronousDAGSystemService internal constructor(
     }
 
     internal class Builder {
-        internal fun build(systems: List<System>): AsynchronousDAGSystemService {
+        internal fun build(systems: List<System>): AsynchronousSequentialSystemService {
             val monitorSystems = systems.filterIsInstance<MonitorSystem>()
             val renderSystems = systems.filterIsInstance<RenderSystem>()
             val updateSystems = systems.filterIsInstance<AsynchronousUpdateSystem>()
@@ -97,7 +187,7 @@ internal class AsynchronousDAGSystemService internal constructor(
                 )
             }
 
-            return AsynchronousDAGSystemService(
+            return AsynchronousSequentialSystemService(
                 monitorSystems = monitorSystems,
                 renderSystems = renderSystems,
                 updateExecutionSteps = dag.toExecutionSteps()

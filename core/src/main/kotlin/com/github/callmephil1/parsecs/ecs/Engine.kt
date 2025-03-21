@@ -51,7 +51,7 @@ class Engine internal constructor(
             val entityService = di.get(EntityService::class.java)
 
             val systemService = if (systemServiceConfig.asynchronous) {
-                AsynchronousDAGSystemService.Builder()
+                AsynchronousSequentialSystemService.Builder()
                     .build(systemServiceConfig.systems.map {
                         di.get(it) as System
                     })
