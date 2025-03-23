@@ -1,3 +1,5 @@
+package com.github.callmephil1.parsecs
+
 import com.github.callmephil1.parsecs.ecs.DependencyInjection
 import kotlin.test.*
 

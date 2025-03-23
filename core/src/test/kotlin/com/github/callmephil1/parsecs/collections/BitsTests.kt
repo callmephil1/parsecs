@@ -1,4 +1,4 @@
-package collections
+package com.github.callmephil1.parsecs.collections
 
 import com.github.callmephil1.parsecs.ecs.collections.Bits
 import kotlin.test.Test

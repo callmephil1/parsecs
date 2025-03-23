@@ -1,3 +1,5 @@
+package com.github.callmephil1.parsecs
+
 import com.github.callmephil1.parsecs.ecs.component.ComponentService
 import com.github.callmephil1.parsecs.ecs.engine
 import com.github.callmephil1.parsecs.ecs.entity.EntityService

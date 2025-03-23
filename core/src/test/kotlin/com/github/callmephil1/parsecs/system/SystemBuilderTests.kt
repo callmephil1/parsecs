@@ -1,4 +1,4 @@
-package system
+package com.github.callmephil1.parsecs.system
 
 import com.github.callmephil1.parsecs.ecs.collections.CircularReference
 import com.github.callmephil1.parsecs.ecs.system.AsynchronousSequentialSystemService

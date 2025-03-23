@@ -1,4 +1,4 @@
-package entity
+package com.github.callmephil1.parsecs.entity
 
 import com.github.callmephil1.parsecs.ecs.component.ComponentService
 import com.github.callmephil1.parsecs.ecs.entity.EntityService
