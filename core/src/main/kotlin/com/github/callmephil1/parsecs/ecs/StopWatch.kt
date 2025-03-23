@@ -5,7 +5,7 @@ class StopWatch {
     private var stopTime: Long = 0
 
     val seconds: Float
-        get() = (stopTime - startTime) / 1_000_000f
+        get() = (stopTime - startTime) / 1_000_000_000f
 
     fun start() {
         startTime = System.nanoTime()

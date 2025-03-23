@@ -1,5 +1,6 @@
 package com.github.callmephil1.parsecs.ecs
 
+import com.github.callmephil1.parsecs.EventBus
 import com.github.callmephil1.parsecs.ecs.component.ComponentService
 import com.github.callmephil1.parsecs.ecs.entity.EntityService
 import com.github.callmephil1.parsecs.ecs.system.*
@@ -9,6 +10,7 @@ import java.lang.System as JSystem
 class Engine internal constructor(
     private val di: DependencyInjection,
     private val entityService: EntityService,
+    private val eventBus: EventBus,
     private val systemService: SystemService
 ){
     private val stopWatch = StopWatch()
@@ -16,6 +18,8 @@ class Engine internal constructor(
 
     fun update(delta: Float) {
         systemService.engineLoopStart()
+
+        eventBus.processEvents()
 
         entityService.releaseEntities()
         entityService.updateEntities()
@@ -29,7 +33,7 @@ class Engine internal constructor(
     }
 
     fun update() {
-        val deltaTime = stopWatch.seconds / 1000
+        val deltaTime = stopWatch.seconds
         stopWatch.start()
         update(deltaTime)
         stopWatch.stop()
@@ -40,15 +44,15 @@ class Engine internal constructor(
         private val systemServiceConfig = SystemService.Configuration()
 
         fun build(): Engine {
-            diBuilder.singleton(EntityService::class.java)
-            diBuilder.singleton(ComponentService::class.java)
+            diBuilder.singleton<EntityService>()
+            diBuilder.singleton<EventBus>()
+            diBuilder.singleton<ComponentService>()
 
             systemServiceConfig.systems.forEach {
                 diBuilder.singleton(it)
             }
 
             val di = diBuilder.build()
-            val entityService = di.get(EntityService::class.java)
 
             val systemService = if (systemServiceConfig.asynchronous) {
                 AsynchronousSequentialSystemService.Builder()
@@ -63,9 +67,10 @@ class Engine internal constructor(
             }
 
             val engine = Engine(
-                di,
-                entityService,
-                systemService
+                di = di,
+                entityService = di.get(),
+                eventBus = di.get(),
+                systemService = systemService
             )
 
             systemService.engineInitialized()
