@@ -57,6 +57,18 @@ class Bits(
         return (chunk and mask) != 0
     }
 
+    fun getSetIndicies(): List<Int> {
+        val indices = mutableListOf<Int>()
+
+        for(i in 0 .. count) {
+            if (get(i)) {
+                indices.add(i)
+            }
+        }
+
+        return indices
+    }
+
     private fun getChunkIndex(index: Int) = index / (Int.SIZE_BITS - 1)
 
     fun intersects(other: Bits): Boolean {
