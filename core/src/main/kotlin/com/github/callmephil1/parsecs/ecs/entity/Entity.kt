@@ -8,6 +8,9 @@ class Entity {
         internal set
     var version: UInt = 0u
         internal set
+    var tag: String = ""
 
     fun ref(): EntityRef = EntityRef(this)
+
+    override fun toString() = "Entity(index: $index, version: $version, tag: $tag, hashCode: ${hashCode()})"
 }

@@ -17,11 +17,12 @@ class Entities internal constructor(
     val name: String
 ) : Iterable<Entity> {
 
-    private val entities = Bag<Entity>()
+    private val _entities = Bag<Entity>()
+    val entities = _entities.toReadOnly()
     private val scope = CoroutineScope(Dispatchers.Default)
 
     internal fun add(entity: Entity) {
-        entities.add(entity)
+        _entities.add(entity)
         entityAdded?.invoke(entity)
     }
 
@@ -29,16 +30,16 @@ class Entities internal constructor(
             (anyMask == null || entityBits.intersects(anyMask)) &&
             (noneMask == null || !entityBits.intersects(noneMask))
 
-    override fun iterator(): Iterator<Entity> = entities.iterator() as Iterator<Entity>
+    override fun iterator(): Iterator<Entity> = _entities.iterator() as Iterator<Entity>
 
     fun parallelForEach(block: (Entity) -> Unit) = runBlocking {
-        val chunkSize = entities.count / chunkCount
+        val chunkSize = _entities.count / chunkCount
         val jobs = ArrayList<Job>(chunkCount)
 
         for(i in 0 ..< chunkCount - 1) {
             jobs.add(scope.launch {
                 for(idx in i * chunkSize ..< (i + 1) * chunkSize) {
-                    val entity = entities[idx]
+                    val entity = _entities[idx]
                     if (entity != null)
                         block(entity)
                 }
@@ -46,8 +47,8 @@ class Entities internal constructor(
         }
 
         jobs.add(scope.launch {
-            for(idx in (chunkCount - 1) * chunkSize ..< entities.count) {
-                val entity = entities[idx]
+            for(idx in (chunkCount - 1) * chunkSize ..< _entities.count) {
+                val entity = _entities[idx]
                 if (entity != null)
                     block(entity)
             }
@@ -57,7 +58,7 @@ class Entities internal constructor(
     }
 
     internal fun remove(entity: Entity) {
-        entities.remove(entity)
+        _entities.remove(entity)
         entityRemoved?.invoke(entity)
     }
 
@@ -75,7 +76,7 @@ class Entities internal constructor(
         private var entityRemoved: EntitiesListener? = null
         private var entityUpdated: EntitiesListener? = null
         private var noneMask: Bits? = null
-        private var name: String = ""
+        var name: String = ""
 
         fun build(): Entities {
             val newEntities = Entities(allMask, anyMask, noneMask, entityAdded, entityRemoved, entityUpdated, name)
@@ -113,10 +114,6 @@ class Entities internal constructor(
 
         fun entityUpdated(listener: EntitiesListener) {
             entityUpdated = listener
-        }
-
-        fun name(name: String) {
-            this.name = name
         }
 
         fun none(vararg components: Class<*>) {

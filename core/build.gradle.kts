@@ -29,7 +29,7 @@ plugins {
     kotlin("jvm")
 }
 
-archivesName = "parsec-core"
+archivesName = "parsecs-core"
 group = "com.github.callmephil"
 version = generateVersion()
 

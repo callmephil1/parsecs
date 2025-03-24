@@ -11,11 +11,11 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class TestComponent
-class TestComponent2
-class TestComponent3
-class TestComponent4
-class ParallelTestComponent {
+private class TestComponent
+private class TestComponent2
+private class TestComponent3
+private class TestComponent4
+private class ParallelTestComponent {
     var value: Int = 0
 }
 

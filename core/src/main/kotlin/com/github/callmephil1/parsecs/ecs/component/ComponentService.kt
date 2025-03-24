@@ -8,6 +8,8 @@ class ComponentService internal constructor() {
     private val componentMappers = mutableListOf<ComponentMapper<*>>()
     private val componentMapperIndices = mutableMapOf<Class<*>, Int>()
 
+    fun <T> getMapper(index: Int) = componentMappers[index] as ComponentMapper<T>
+
     fun <T> getMapper(clazz: Class<T>): ComponentMapper<T> {
         val index = componentMapperIndices[clazz]
 
@@ -27,7 +29,6 @@ class ComponentService internal constructor() {
         if (component.index == -1) {
             val mapper = getMapper(component.clazz)
             component.index = mapper.index
-            componentMappers.add(mapper)
         }
         return componentMappers[component.index] as ComponentMapper<T>
     }

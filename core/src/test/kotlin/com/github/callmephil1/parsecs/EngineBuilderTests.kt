@@ -7,7 +7,7 @@ import com.github.callmephil1.parsecs.ecs.system.RenderSystem
 import com.github.callmephil1.parsecs.ecs.system.UpdateSystem
 import kotlin.test.Test
 
-class TestComponent {
+private class TestComponent {
     var x: Int = 0
 }
 
