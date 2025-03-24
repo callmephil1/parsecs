@@ -19,6 +19,7 @@ class DependencyInjection internal constructor(
 
         fun <T : Any> scoped(clazz: Class<T>): Builder {
             val ctor = clazz.constructors[0]
+            ctor.isAccessible = true
             val params = ctor.parameterTypes
 
             val clazzGetter: DependencyInjection.() -> Any = getter@{
@@ -46,6 +47,7 @@ class DependencyInjection internal constructor(
 
         fun <T : Any> singleton(clazz: Class<T>): Builder {
             val ctor = clazz.constructors[0]
+            ctor.isAccessible = true
             val params = ctor.parameterTypes
 
             var singleton: T? = null
