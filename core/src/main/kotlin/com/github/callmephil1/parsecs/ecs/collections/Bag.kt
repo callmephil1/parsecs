@@ -85,6 +85,8 @@ class Bag<T>(initialSize: Int = 1) : Iterable<T?> {
 class ReadOnlyBag<T> internal constructor(
     private val bag: Bag<T>
 ): Iterable<T?> {
+    val capacity get() = bag.capacity
+    val count get() = bag.count
     operator fun get(index: Int): T? = bag[index]
     fun indexOf(item: T?) = bag.indexOf(item)
     override fun iterator() = bag.iterator()

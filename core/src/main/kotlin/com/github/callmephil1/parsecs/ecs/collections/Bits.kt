@@ -60,7 +60,7 @@ class Bits(
     fun getSetIndicies(): List<Int> {
         val indices = mutableListOf<Int>()
 
-        for(i in 0 .. count) {
+        for(i in 0 ..< count) {
             if (get(i)) {
                 indices.add(i)
             }
@@ -69,7 +69,7 @@ class Bits(
         return indices
     }
 
-    private fun getChunkIndex(index: Int) = index / (Int.SIZE_BITS - 1)
+    private fun getChunkIndex(index: Int) = index / (Int.SIZE_BITS)
 
     fun intersects(other: Bits): Boolean {
         val end = min(chunks.size, other.chunks.size) - 1
