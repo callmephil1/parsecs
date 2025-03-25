@@ -3,11 +3,14 @@ package com.github.callmephil1.parsecs.ecs.entity
 import com.github.callmephil1.parsecs.ecs.collections.Bag
 import com.github.callmephil1.parsecs.ecs.collections.Pool
 import com.github.callmephil1.parsecs.ecs.component.ComponentService
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.*
 
 class EntityService internal constructor(
     private val componentService: ComponentService
 ) {
+
+    private val logger = KotlinLogging.logger {}
 
     private val createdEntities = Stack<Entity>()
     private val entities = mutableListOf<Entities>()
@@ -24,8 +27,10 @@ class EntityService internal constructor(
             val entity = createdEntities.pop()
 
             for (i in entities.indices) {
-                if (entities[i].isInterested(entity))
+                if (entities[i].isInterested(entity)) {
+                    logger.debug { "Adding $entity to ${entities[i]}" }
                     entities[i].add(entity)
+                }
             }
         }
     }
@@ -51,6 +56,9 @@ class EntityService internal constructor(
         val entity = pool.obtain()
         entity.index = entityBag.count
         entityBag.add(entity)
+
+        logger.debug { "Obtained new entity $entity" }
+
         return entity
     }
 
@@ -60,12 +68,16 @@ class EntityService internal constructor(
         while(!releasedEntities.empty()) {
             val entity = releasedEntities.pop()
 
+            logger.debug { "Releasing entity $entity" }
+
             if (entity.index == -1)
                 continue
 
             for (i in entities.indices) {
-                if (entities[i].isInterested(entity))
+                if (entities[i].isInterested(entity)) {
+                    logger.debug { "Removing $entity from ${entities[i]}" }
                     entities[i].remove(entity)
+                }
             }
 
             val movedEntity = entityBag.removeAt(entity.index)

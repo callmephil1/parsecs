@@ -1,5 +1,7 @@
 package com.github.callmephil1.parsecs.ecs
 
+import java.lang.reflect.InvocationTargetException
+
 class MissingDependencyError(
     clazz: Class<*>,
     paramClass: Class<*>,
@@ -27,7 +29,13 @@ class DependencyInjection internal constructor(
                     val result = runCatching { this.get(it) }
                     when {
                         result.isSuccess -> { return@map result.getOrThrow() }
-                        else -> { throw MissingDependencyError(clazz, it, result.exceptionOrNull()!!)}
+                        else -> {
+                            var exception = result.exceptionOrNull()
+
+                            if (exception is InvocationTargetException)
+                                exception = exception.targetException
+                            throw MissingDependencyError(clazz, it, exception!!)
+                        }
                     }
                 }.toTypedArray()
                 return@getter ctor.newInstance(*paramInstances)!!
@@ -60,7 +68,14 @@ class DependencyInjection internal constructor(
                     val result = runCatching { this.get(it) }
                     when {
                         result.isSuccess -> { return@map result.getOrThrow() }
-                        else -> { throw MissingDependencyError(clazz, it, result.exceptionOrNull()!!)}
+                        else -> {
+                            var exception = result.exceptionOrNull()
+
+                            if (exception is InvocationTargetException)
+                                exception = exception.targetException
+
+                            throw MissingDependencyError(clazz, it, exception!!)
+                        }
                     }
                 }.toTypedArray()
 

@@ -27,6 +27,7 @@ fun generateVersion(): String {
 
 plugins {
     kotlin("jvm")
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 archivesName = "parsecs-core"
@@ -39,9 +40,16 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
+    implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
+    testImplementation("ch.qos.logback:logback-classic:1.5.18")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation(kotlin("test"))
+}
+
+tasks.shadowJar {
+    archiveClassifier.set("")
+    relocate("io.github.oshai.kotlinlogging", "parsecs.shaded.kotlinloggin")
 }
 
 tasks.test {

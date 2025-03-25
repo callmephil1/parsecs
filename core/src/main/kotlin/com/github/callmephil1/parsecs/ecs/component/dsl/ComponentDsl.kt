@@ -2,6 +2,7 @@ package com.github.callmephil1.parsecs.ecs.component.dsl
 
 import com.github.callmephil1.parsecs.ecs.component.ComponentService
 import com.github.callmephil1.parsecs.ecs.entity.Entity
+import com.github.callmephil1.parsecs.ecs.entity.EntityRef
 
 interface ComponentDsl {
     val componentService: ComponentService
@@ -14,16 +15,29 @@ interface ComponentDsl {
 
     operator fun <T : Any> Entity.get(component: Class<T>): T = componentService.getMapper(component)[this]
     operator fun <T : Any> Entity.get(component: Component<T>): T = componentService.getMapper(component)[this]
+    operator fun <T : Any> EntityRef.get(component: Class<T>) = this.entity[component]
+    operator fun <T : Any> EntityRef.get(component: Component<T>) = this.entity[component]
+
     fun <T : Any> Entity.has(component: Class<T>) = componentService.getMapper(component).has(this)
     fun <T : Any> Entity.has(component: Component<T>) = componentService.getMapper(component).has(this)
+    fun <T : Any> EntityRef.has(component: Class<T>) = this.entity.has(component)
+    fun <T : Any> EntityRef.has(component: Component<T>) = this.entity[component]
+
     fun <T : Any> Entity.obtainAndSet(component: Component<T>, block: (T) -> Unit = {}): T {
         val newComponent = component.obtain()
         block(newComponent)
         set(component, newComponent)
         return newComponent
     }
+    fun <T : Any> EntityRef.obtainAndSet(component: Component<T>, block: (T) -> Unit = {}) = this.entity.obtainAndSet(component, block)
+
     fun <T : Any> Entity.remove(component: Class<T>) = componentService.getMapper(component).remove(this)
     fun <T : Any> Entity.remove(component: Component<T>) = componentService.getMapper(component).remove(this)
+    fun <T : Any> EntityRef.remove(component: Class<T>) = this.entity.remove(component)
+    fun <T : Any> EntityRef.remove(component: Component<T>) = this.entity.remove(component)
+
     operator fun <T : Any> Entity.set(component: Class<T>, value: T) { componentService.getMapper(component)[this] = value }
     operator fun <T : Any> Entity.set(component: Component<T>, value: T) { componentService.getMapper(component)[this] = value }
+    operator fun <T : Any> EntityRef.set(component: Class<T>, value: T) { this.entity[component] = value }
+    operator fun <T : Any> EntityRef.set(component: Component<T>, value: T) { this.entity[component] = value }
 }

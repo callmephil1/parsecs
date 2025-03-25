@@ -12,5 +12,5 @@ class Entity {
 
     fun ref(): EntityRef = EntityRef(this)
 
-    override fun toString() = "Entity(index: $index, version: $version, tag: $tag, hashCode: ${hashCode()})"
+    override fun toString() = "Entity(index: $index, version: $version, tag: '$tag', hashCode: ${hashCode()})"
 }

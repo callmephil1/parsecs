@@ -3,6 +3,7 @@ package com.github.callmephil1.parsecs.ecs.entity.dsl
 import com.github.callmephil1.parsecs.ecs.component.dsl.Component
 import com.github.callmephil1.parsecs.ecs.entity.Entities
 import com.github.callmephil1.parsecs.ecs.entity.Entity
+import com.github.callmephil1.parsecs.ecs.entity.EntityRef
 import com.github.callmephil1.parsecs.ecs.entity.EntityService
 
 interface EntityDsl {
@@ -20,4 +21,5 @@ interface EntityDsl {
         this.block()
         entityService.update(this)
     }
+    fun EntityRef.update(block: Entity.() -> Unit) = this.entity.update(block)
 }

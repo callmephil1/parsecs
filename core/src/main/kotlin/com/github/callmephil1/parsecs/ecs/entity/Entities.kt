@@ -32,7 +32,6 @@ class Entities internal constructor(
             (noneMask == null || !entity.componentMask.intersects(noneMask)) &&
             predicate(entity)
 
-
     override fun iterator(): Iterator<Entity> = _entities.iterator() as Iterator<Entity>
 
     fun parallelForEach(block: (Entity) -> Unit) = runBlocking {
@@ -64,6 +63,8 @@ class Entities internal constructor(
         _entities.remove(entity)
         entityRemoved?.invoke(entity)
     }
+
+    override fun toString(): String = "Entities(name: '$name', hashcode: ${hashCode()})"
 
     internal fun update(entity: Entity) {
         entityUpdated?.invoke(entity)

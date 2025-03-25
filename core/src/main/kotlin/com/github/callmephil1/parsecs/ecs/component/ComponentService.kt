@@ -2,11 +2,13 @@ package com.github.callmephil1.parsecs.ecs.component
 
 import com.github.callmephil1.parsecs.ecs.component.dsl.Component
 import com.github.callmephil1.parsecs.ecs.entity.Entity
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 class ComponentService internal constructor() {
     private var mapperCount = 0
     private val componentMappers = mutableListOf<ComponentMapper<*>>()
     private val componentMapperIndices = mutableMapOf<Class<*>, Int>()
+    private val logger = KotlinLogging.logger { }
 
     fun <T> getMapper(index: Int) = componentMappers[index] as ComponentMapper<T>
 
@@ -36,6 +38,8 @@ class ComponentService internal constructor() {
     internal fun <T> getComponentIndex(clazz: Class<T>) = getMapper(clazz).index
 
     internal fun release(entity: Entity, with: Entity) {
+        logger.debug { "Releasing $entity with $with" }
+
         for (i in componentMappers.indices)
             componentMappers[i].release(entity = entity, with = with)
     }

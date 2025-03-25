@@ -32,8 +32,9 @@ class ComponentMapper<T> internal constructor(
     fun obtain() = pool.obtain()
 
     internal fun release(entity: Int, with: Int) {
-        val component = components[entity]
-        pool.release(component)
+        if (entity < components.count)
+            pool.release(components[entity])
+
         components.move(with, entity)
     }
 
