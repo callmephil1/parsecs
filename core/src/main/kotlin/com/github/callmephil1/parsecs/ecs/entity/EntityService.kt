@@ -24,7 +24,7 @@ class EntityService internal constructor(
             val entity = createdEntities.pop()
 
             for (i in entities.indices) {
-                if (entities[i].isInterested(entity.componentMask))
+                if (entities[i].isInterested(entity))
                     entities[i].add(entity)
             }
         }
@@ -64,7 +64,7 @@ class EntityService internal constructor(
                 continue
 
             for (i in entities.indices) {
-                if (entities[i].isInterested(entity.componentMask))
+                if (entities[i].isInterested(entity))
                     entities[i].remove(entity)
             }
 
@@ -91,7 +91,7 @@ class EntityService internal constructor(
                 continue
 
             for(i in entities.indices){
-                if (entities[i].isInterested(entity.componentMask))
+                if (entities[i].isInterested(entity))
                     entities[i].update(entity)
             }
         }

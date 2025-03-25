@@ -35,7 +35,7 @@ class Bits(
     }
 
     private fun ensureCapcity(target: Int) {
-        if (target <= count)
+        if (target < count)
             return
 
         val newCount = (target / 32) + 1

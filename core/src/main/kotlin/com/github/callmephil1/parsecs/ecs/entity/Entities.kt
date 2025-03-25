@@ -14,7 +14,8 @@ class Entities internal constructor(
     private var entityAdded: EntitiesListener?,
     private var entityRemoved: EntitiesListener?,
     private var entityUpdated: EntitiesListener?,
-    val name: String
+    val name: String,
+    private val predicate: (Entity) -> Boolean
 ) : Iterable<Entity> {
 
     private val _entities = Bag<Entity>()
@@ -26,9 +27,11 @@ class Entities internal constructor(
         entityAdded?.invoke(entity)
     }
 
-    internal fun isInterested(entityBits: Bits) = (allMask == null || entityBits.contains(allMask)) &&
-            (anyMask == null || entityBits.intersects(anyMask)) &&
-            (noneMask == null || !entityBits.intersects(noneMask))
+    internal fun isInterested(entity: Entity) = (allMask == null || entity.componentMask.contains(allMask)) &&
+            (anyMask == null || entity.componentMask.intersects(anyMask)) &&
+            (noneMask == null || !entity.componentMask.intersects(noneMask)) &&
+            predicate(entity)
+
 
     override fun iterator(): Iterator<Entity> = _entities.iterator() as Iterator<Entity>
 
@@ -77,9 +80,10 @@ class Entities internal constructor(
         private var entityUpdated: EntitiesListener? = null
         private var noneMask: Bits? = null
         var name: String = ""
+        private var predicate: (Entity) -> Boolean = { true }
 
         fun build(): Entities {
-            val newEntities = Entities(allMask, anyMask, noneMask, entityAdded, entityRemoved, entityUpdated, name)
+            val newEntities = Entities(allMask, anyMask, noneMask, entityAdded, entityRemoved, entityUpdated, name, predicate)
             entityService.addEntities(newEntities)
             return newEntities
         }
@@ -124,6 +128,10 @@ class Entities internal constructor(
                 val index = componentService.getComponentIndex(components[i])
                 noneMask!!.setBit(index, true)
             }
+        }
+
+        fun predicate(predicate: (Entity) -> Boolean) {
+            this.predicate = predicate
         }
     }
 

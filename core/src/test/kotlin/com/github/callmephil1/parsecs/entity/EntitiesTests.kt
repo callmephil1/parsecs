@@ -1,17 +1,15 @@
 package com.github.callmephil1.parsecs.entity
 
-import com.github.callmephil1.parsecs.ecs.collections.Bits
 import com.github.callmephil1.parsecs.ecs.component.ComponentMapper
 import com.github.callmephil1.parsecs.ecs.component.ComponentService
 import com.github.callmephil1.parsecs.ecs.entity.Entity
 import com.github.callmephil1.parsecs.ecs.entity.EntityService
 import org.junit.jupiter.api.BeforeAll
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.*
 
-private class TestComponent
+private class TestComponent(
+    var value: Int = 10
+)
 private class TestComponent2
 private class TestComponent3
 private class TestComponent4
@@ -27,24 +25,24 @@ class EntitiesTests {
             all(TestComponent::class.java, TestComponent2::class.java)
         }
 
-        val matchBits = Bits().apply {
-            set(componentService.getComponentIndex(TestComponent::class.java), true)
-            set(componentService.getComponentIndex(TestComponent2::class.java), true)
+        val matchEntity = Entity().apply {
+            this.componentMask[componentService.getComponentIndex(TestComponent::class.java)] = true
+            this.componentMask[componentService.getComponentIndex(TestComponent2::class.java)] = true
         }
 
-        val mismatchBits = Bits().apply {
-            set(componentService.getComponentIndex(TestComponent2::class.java), true)
-            set(componentService.getComponentIndex(TestComponent4::class.java), true)
+        val mismatchEntity = Entity().apply {
+            this.componentMask[componentService.getComponentIndex(TestComponent2::class.java)] = true
+            this.componentMask[componentService.getComponentIndex(TestComponent4::class.java)] = true
         }
 
-        val mismatchBits2 = Bits().apply {
-            set(componentService.getComponentIndex(TestComponent3::class.java), true)
-            set(componentService.getComponentIndex(TestComponent4::class.java), true)
+        val mismatchEntity2 = Entity().apply {
+            this.componentMask[componentService.getComponentIndex(TestComponent3::class.java)] = true
+            this.componentMask[componentService.getComponentIndex(TestComponent4::class.java)] = true
         }
 
-        assertTrue(entities.isInterested(matchBits))
-        assertFalse(entities.isInterested(mismatchBits))
-        assertFalse(entities.isInterested(mismatchBits2))
+        assertTrue(entities.isInterested(matchEntity))
+        assertFalse(entities.isInterested(mismatchEntity))
+        assertFalse(entities.isInterested(mismatchEntity2))
     }
 
     @Test
@@ -53,30 +51,30 @@ class EntitiesTests {
             any(TestComponent::class.java, TestComponent2::class.java)
         }
 
-        val matchBits = Bits().apply {
-            set(componentService.getComponentIndex(TestComponent::class.java), true)
-            set(componentService.getComponentIndex(TestComponent3::class.java), true)
+        val matchEntity = Entity().apply {
+            this.componentMask[componentService.getComponentIndex(TestComponent::class.java)] = true
+            this.componentMask[componentService.getComponentIndex(TestComponent3::class.java)] = true
         }
 
-        val matchBits2 = Bits().apply {
-            set(componentService.getComponentIndex(TestComponent2::class.java), true)
-            set(componentService.getComponentIndex(TestComponent4::class.java), true)
+        val matchEntity2 = Entity().apply {
+            this.componentMask[componentService.getComponentIndex(TestComponent2::class.java)] = true
+            this.componentMask[componentService.getComponentIndex(TestComponent4::class.java)] = true
         }
 
-        val matchBits3 = Bits().apply {
-            set(componentService.getComponentIndex(TestComponent::class.java), true)
-            set(componentService.getComponentIndex(TestComponent2::class.java), true)
+        val matchEntity3 = Entity().apply {
+            this.componentMask[componentService.getComponentIndex(TestComponent::class.java)] = true
+            this.componentMask[componentService.getComponentIndex(TestComponent2::class.java)] = true
         }
 
-        val mismatchBits = Bits().apply {
-            set(componentService.getComponentIndex(TestComponent3::class.java), true)
-            set(componentService.getComponentIndex(TestComponent4::class.java), true)
+        val mismatchEntity = Entity().apply {
+            this.componentMask[componentService.getComponentIndex(TestComponent3::class.java)] = true
+            this.componentMask[componentService.getComponentIndex(TestComponent4::class.java)] = true
         }
 
-        assertTrue(entities.isInterested(matchBits))
-        assertTrue(entities.isInterested(matchBits2))
-        assertTrue(entities.isInterested(matchBits3))
-        assertFalse(entities.isInterested(mismatchBits))
+        assertTrue(entities.isInterested(matchEntity))
+        assertTrue(entities.isInterested(matchEntity2))
+        assertTrue(entities.isInterested(matchEntity3))
+        assertFalse(entities.isInterested(mismatchEntity))
     }
 
     @Test
@@ -85,24 +83,54 @@ class EntitiesTests {
             none(TestComponent::class.java, TestComponent2::class.java)
         }
 
-        val matchBits = Bits().apply {
-            set(componentService.getComponentIndex(TestComponent4::class.java), true)
-            set(componentService.getComponentIndex(TestComponent3::class.java), true)
+        val matchEntity = Entity().apply {
+            this.componentMask[componentService.getComponentIndex(TestComponent4::class.java)] = true
+            this.componentMask[componentService.getComponentIndex(TestComponent3::class.java)] = true
         }
 
-        val mismatchBits = Bits().apply {
-            set(componentService.getComponentIndex(TestComponent::class.java), true)
-            set(componentService.getComponentIndex(TestComponent2::class.java), true)
+        val mismatchEntity = Entity().apply {
+            this.componentMask[componentService.getComponentIndex(TestComponent::class.java)] = true
+            this.componentMask[componentService.getComponentIndex(TestComponent2::class.java)] = true
         }
 
-        val mismatchBits2 = Bits().apply {
-            set(componentService.getComponentIndex(TestComponent::class.java), true)
-            set(componentService.getComponentIndex(TestComponent3::class.java), true)
+        val mismatchEntity2 = Entity().apply {
+            this.componentMask[componentService.getComponentIndex(TestComponent::class.java)] = true
+            this.componentMask[componentService.getComponentIndex(TestComponent3::class.java)] = true
         }
 
-        assertTrue(entities.isInterested(matchBits))
-        assertFalse(entities.isInterested(mismatchBits))
-        assertFalse(entities.isInterested(mismatchBits2))
+        assertTrue(entities.isInterested(matchEntity))
+        assertFalse(entities.isInterested(mismatchEntity))
+        assertFalse(entities.isInterested(mismatchEntity2))
+    }
+
+    @Test
+    fun `Entities with a predicate should succeed`() {
+        val entities = entityService.entities {
+            all(TestComponent::class.java)
+
+            predicate {
+                it.index == 0
+            }
+        }
+
+        val matchEntity = Entity().apply {
+            index = 0
+            val testComponent = testComponentMapper.obtain()
+            testComponent.value = 5
+            testComponentMapper[this] = testComponent
+            this.componentMask[componentService.getComponentIndex(TestComponent::class.java)] = true
+        }
+
+        val mismatchEntity = Entity().apply {
+            index = 1
+            val testComponent = testComponentMapper.obtain()
+            testComponent.value = 10
+            testComponentMapper[this] = testComponent
+            this.componentMask[componentService.getComponentIndex(TestComponent::class.java)] = true
+        }
+
+        assertTrue(entities.isInterested(matchEntity))
+        assertFalse(entities.isInterested(mismatchEntity))
     }
 
     @Test

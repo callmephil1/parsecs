@@ -16,10 +16,11 @@ interface ComponentDsl {
     operator fun <T : Any> Entity.get(component: Component<T>): T = componentService.getMapper(component)[this]
     fun <T : Any> Entity.has(component: Class<T>) = componentService.getMapper(component).has(this)
     fun <T : Any> Entity.has(component: Component<T>) = componentService.getMapper(component).has(this)
-    fun <T : Any> Entity.obtainAndSet(component: Component<T>, block: (T) -> Unit = {}) {
+    fun <T : Any> Entity.obtainAndSet(component: Component<T>, block: (T) -> Unit = {}): T {
         val newComponent = component.obtain()
         block(newComponent)
         set(component, newComponent)
+        return newComponent
     }
     fun <T : Any> Entity.remove(component: Class<T>) = componentService.getMapper(component).remove(this)
     fun <T : Any> Entity.remove(component: Component<T>) = componentService.getMapper(component).remove(this)
