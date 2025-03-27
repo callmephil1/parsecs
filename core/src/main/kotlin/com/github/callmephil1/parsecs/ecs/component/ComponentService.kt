@@ -1,6 +1,6 @@
 package com.github.callmephil1.parsecs.ecs.component
 
-import com.github.callmephil1.parsecs.ecs.component.dsl.Component
+import com.github.callmephil1.parsecs.ecs.dsl.Component
 import com.github.callmephil1.parsecs.ecs.entity.Entity
 import io.github.oshai.kotlinlogging.KotlinLogging
 

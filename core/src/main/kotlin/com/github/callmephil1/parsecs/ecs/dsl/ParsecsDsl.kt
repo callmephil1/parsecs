@@ -1,17 +1,24 @@
-package com.github.callmephil1.parsecs.ecs.component.dsl
+package com.github.callmephil1.parsecs.ecs.dsl
 
 import com.github.callmephil1.parsecs.ecs.component.ComponentService
+import com.github.callmephil1.parsecs.ecs.entity.Entities
 import com.github.callmephil1.parsecs.ecs.entity.Entity
 import com.github.callmephil1.parsecs.ecs.entity.EntityRef
+import com.github.callmephil1.parsecs.ecs.entity.EntityService
 
-interface ComponentDsl {
+interface ParsecsDsl {
     val componentService: ComponentService
+    val entityService: EntityService
+
+    fun entities(configure: Entities.Builder.() -> Unit): Entities = entityService.entities(configure)
+
+    fun entity(configure: Entity.() -> Unit): Entity = entityService.entity(configure)
 
     fun <T : Any> Component<T>.obtain() = componentService.getMapper(this).obtain()
 
     fun Entity.allComponents() : List<Any> = this.componentMask.getSetIndicies().map {
-            componentService.getMapper<Any>(it)[this]
-        }
+        componentService.getMapper<Any>(it)[this]
+    }
 
     operator fun <T : Any> Entity.get(component: Class<T>): T = componentService.getMapper(component)[this]
     operator fun <T : Any> Entity.get(component: Component<T>): T = componentService.getMapper(component)[this]
@@ -40,4 +47,14 @@ interface ComponentDsl {
     operator fun <T : Any> Entity.set(component: Component<T>, value: T) { componentService.getMapper(component)[this] = value }
     operator fun <T : Any> EntityRef.set(component: Class<T>, value: T) { this.entity[component] = value }
     operator fun <T : Any> EntityRef.set(component: Component<T>, value: T) { this.entity[component] = value }
+
+    fun Entity.update(block: Entity.() -> Unit) {
+        this.block()
+        entityService.update(this)
+    }
+    fun EntityRef.update(block: Entity.() -> Unit) = this.entity.update(block)
+
+    fun Entities.Builder.all(vararg component: Component<*>) = this.all(*component.map { it.clazz }.toTypedArray())
+    fun Entities.Builder.any(vararg component: Component<*>) = this.any(*component.map { it.clazz }.toTypedArray())
+    fun Entities.Builder.none(vararg component: Component<*>) = this.none(*component.map { it.clazz }.toTypedArray())
 }

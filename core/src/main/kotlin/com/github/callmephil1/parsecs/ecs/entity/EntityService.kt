@@ -64,6 +64,8 @@ class EntityService internal constructor(
 
     fun release(entity: Entity) = releasedEntities.push(entity)
 
+    fun release(entityRef: EntityRef) = release(entityRef.entity)
+
     internal fun releaseEntities() {
         while(!releasedEntities.empty()) {
             val entity = releasedEntities.pop()

@@ -1,4 +1,4 @@
-package com.github.callmephil1.parsecs.ecs.component.dsl
+package com.github.callmephil1.parsecs.ecs.dsl
 
 abstract class Component<T> {
     abstract val clazz: Class<T>

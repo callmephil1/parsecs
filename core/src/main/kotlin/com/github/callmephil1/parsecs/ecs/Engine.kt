@@ -9,8 +9,8 @@ import java.lang.System as JSystem
 
 class Engine internal constructor(
     private val di: DependencyInjection,
-    private val entityService: EntityService,
-    private val eventBus: EventBus,
+    val entityService: EntityService,
+    val eventBus: EventBus,
     private val systemService: SystemService
 ){
     private val stopWatch = StopWatch()

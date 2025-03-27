@@ -1,12 +1,12 @@
-package com.github.callmephil1.parsecs.entity.dsl
+package com.github.callmephil1.parsecs.dsl
 
 import com.github.callmephil1.parsecs.ecs.component.ComponentService
-import com.github.callmephil1.parsecs.ecs.component.dsl.Component
-import com.github.callmephil1.parsecs.ecs.component.dsl.ComponentDsl
+import com.github.callmephil1.parsecs.ecs.dsl.Component
+import com.github.callmephil1.parsecs.ecs.dsl.ParsecsDsl
 import com.github.callmephil1.parsecs.ecs.entity.EntityService
-import com.github.callmephil1.parsecs.ecs.entity.dsl.EntityDsl
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 private class DslTestComponent1 {
     companion object : Component<DslTestComponent1>() {
@@ -24,10 +24,9 @@ private class DslTestComponent3 {
     }
 }
 
-class EntitiesDslTests : ComponentDsl, EntityDsl {
-
-    override val componentService: ComponentService = ComponentService()
-    override val entityService: EntityService = EntityService(componentService)
+class ParsecsDslTests : ParsecsDsl {
+    override val componentService = ComponentService()
+    override val entityService = EntityService(componentService)
 
     private val entities1 = entities {
         name = "1"
@@ -37,6 +36,19 @@ class EntitiesDslTests : ComponentDsl, EntityDsl {
     private val entities2 = entities {
         name = "2"
         all(DslTestComponent2, DslTestComponent3)
+    }
+
+    @Test
+    fun `Using the entity dsl when adding components then all should be returned in allComponents`() {
+        val entity1 = entity {
+            obtainAndSet(DslTestComponent1)
+            obtainAndSet(DslTestComponent2)
+        }
+
+        val allComponents = entity1.allComponents()
+        assertEquals(2, allComponents.size)
+        assertTrue(allComponents[0] is DslTestComponent1)
+        assertTrue(allComponents[1] is DslTestComponent2)
     }
 
     @Test

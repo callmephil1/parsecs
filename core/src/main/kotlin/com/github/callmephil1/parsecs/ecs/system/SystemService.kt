@@ -197,17 +197,14 @@ internal class AsynchronousSequentialSystemService internal constructor(
 }
 
 internal class SynchronousSystemService internal constructor(
+    private val systems: List<System>,
     private val monitorSystems: List<MonitorSystem>,
     private val renderSystems: List<RenderSystem>,
     private val updateSystems: List<UpdateSystem>
 ) : SystemService {
 
     override fun engineInitialized() {
-        mutableSetOf<System>().also {
-            it.addAll(monitorSystems)
-            it.addAll(renderSystems)
-            it.addAll(updateSystems)
-        }.forEach {
+        systems.forEach {
             it.engineInitialized()
         }
     }
@@ -243,6 +240,7 @@ internal class SynchronousSystemService internal constructor(
             val updateSystems = systems.filterIsInstance<UpdateSystem>()
 
             return SynchronousSystemService(
+                systems = systems,
                 monitorSystems = monitorSystems,
                 renderSystems = renderSystems,
                 updateSystems = updateSystems
