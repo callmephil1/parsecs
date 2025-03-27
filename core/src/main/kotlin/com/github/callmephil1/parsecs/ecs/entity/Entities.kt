@@ -19,20 +19,26 @@ class Entities internal constructor(
 ) : Iterable<Entity> {
 
     private val _entities = Bag<Entity>()
-    val entities = _entities.toReadOnly()
     private val scope = CoroutineScope(Dispatchers.Default)
 
+    val count: Int get() = _entities.count
+
     internal fun add(entity: Entity) {
-        _entities.add(entity)
+        _entities[entity.index] = entity
         entityAdded?.invoke(entity)
     }
+
+    operator fun get(index: Int) = _entities[index]
+
+    fun has(entity: Entity) = has(entity.index)
+    fun has(index: Int) = _entities[index] != null
 
     internal fun isInterested(entity: Entity) = (allMask == null || entity.componentMask.contains(allMask)) &&
             (anyMask == null || entity.componentMask.intersects(anyMask)) &&
             (noneMask == null || !entity.componentMask.intersects(noneMask)) &&
             predicate(entity)
 
-    override fun iterator(): Iterator<Entity> = _entities.iterator() as Iterator<Entity>
+    override fun iterator(): Iterator<Entity> = EntitiesIterator(_entities)
 
     fun parallelForEach(block: (Entity) -> Unit) = runBlocking {
         val chunkSize = _entities.count / chunkCount
@@ -60,7 +66,7 @@ class Entities internal constructor(
     }
 
     internal fun remove(entity: Entity) {
-        _entities.remove(entity)
+        _entities[entity.index] = null
         entityRemoved?.invoke(entity)
     }
 
@@ -134,6 +140,25 @@ class Entities internal constructor(
         fun predicate(predicate: (Entity) -> Boolean) {
             this.predicate = predicate
         }
+    }
+
+    class EntitiesIterator(
+        private val bag: Bag<Entity>
+    ) : Iterator<Entity> {
+
+        private var index: Int = -1
+
+        override fun hasNext(): Boolean {
+            while (++index < bag.count) {
+                if (bag[index] == null)
+                    continue
+                else
+                    return true
+            }
+            return false
+        }
+
+        override fun next(): Entity = bag[index]!!
     }
 
     companion object {

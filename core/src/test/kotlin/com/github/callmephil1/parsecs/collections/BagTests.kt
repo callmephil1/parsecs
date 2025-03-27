@@ -3,6 +3,8 @@ package com.github.callmephil1.parsecs.collections
 import com.github.callmephil1.parsecs.ecs.collections.Bag
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class BagTests {
     @Test
@@ -15,6 +17,17 @@ class BagTests {
         assertEquals(bag[0], 10)
         assertEquals(bag[3], null)
         assertEquals(bag[10], 100)
+    }
+
+    @Test
+    fun `Check is bag has an object at index`() {
+        val bag = Bag<Int>()
+
+        bag[10] = 100
+
+        assertEquals(bag[10], 100)
+        assertFalse(bag.has(5))
+        assertTrue(bag.has(10))
     }
 
     @Test

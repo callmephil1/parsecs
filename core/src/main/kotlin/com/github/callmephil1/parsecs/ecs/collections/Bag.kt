@@ -22,6 +22,8 @@ class Bag<T>(initialSize: Int = 1) : Iterable<T?> {
 
     operator fun get(index: Int): T? = data[index] as T?
 
+    fun has(index: Int) = index < data.size && data[index] != null
+
     fun indexOf(item: T?): Int {
         for (i in 0 ..< count) {
             if(item === data[i])

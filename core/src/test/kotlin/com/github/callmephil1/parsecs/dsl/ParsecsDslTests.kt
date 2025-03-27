@@ -67,9 +67,9 @@ class ParsecsDslTests : ParsecsDsl {
 
         entityService.createEntities()
 
-        assertEquals(1, entities1.entities.count)
-        assertEquals(entity1, entities1.entities[0])
-        assertEquals(1, entities2.entities.count)
-        assertEquals(entity2, entities2.entities[0])
+        assertEquals(1, entities1.count)
+        assertEquals(entity1, entities1[entity1.index])
+        assertEquals(2, entities2.count)
+        assertEquals(entity2, entities2[entity2.index])
     }
 }

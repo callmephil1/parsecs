@@ -76,7 +76,7 @@ class EntityService internal constructor(
                 continue
 
             for (i in entities.indices) {
-                if (entities[i].isInterested(entity)) {
+                if (entities[i].has(entity)) {
                     logger.debug { "Removing $entity from ${entities[i]}" }
                     entities[i].remove(entity)
                 }
@@ -104,9 +104,16 @@ class EntityService internal constructor(
             if (entity.index == -1)
                 continue
 
-            for(i in entities.indices){
-                if (entities[i].isInterested(entity))
-                    entities[i].update(entity)
+            for(i in entities.indices) {
+                if (entities[i].has(entity)) {
+                    if (entities[i].isInterested(entity)) {
+                        entities[i].update(entity)
+                    } else {
+                        entities[i].remove(entity)
+                    }
+                } else if (entities[i].isInterested(entity)) {
+                    entities[i].add(entity)
+                }
             }
         }
     }
