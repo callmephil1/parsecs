@@ -5,15 +5,15 @@ import com.github.callmephil1.parsecs.ecs.collections.Bits
 import com.github.callmephil1.parsecs.ecs.component.ComponentService
 import kotlinx.coroutines.*
 
-typealias EntitiesListener = (Entity) -> Unit
+typealias FamilyListener = (Entity) -> Unit
 
-class Entities internal constructor(
+class Family internal constructor(
     private val allMask: Bits?,
     private val anyMask: Bits?,
     private val noneMask: Bits?,
-    private var entityAdded: EntitiesListener?,
-    private var entityRemoved: EntitiesListener?,
-    private var entityUpdated: EntitiesListener?,
+    private var entityAdded: FamilyListener?,
+    private var entityRemoved: FamilyListener?,
+    private var entityUpdated: FamilyListener?,
     val name: String,
     private val predicate: (Entity) -> Boolean
 ) : Iterable<Entity> {
@@ -38,7 +38,7 @@ class Entities internal constructor(
             (noneMask == null || !entity.componentMask.intersects(noneMask)) &&
             predicate(entity)
 
-    override fun iterator(): Iterator<Entity> = EntitiesIterator(_entities)
+    override fun iterator(): Iterator<Entity> = FamilyIterator(_entities)
 
     fun parallelForEach(block: (Entity) -> Unit) = runBlocking {
         val chunkSize = _entities.count / chunkCount
@@ -82,17 +82,17 @@ class Entities internal constructor(
     ) {
         private var allMask: Bits? = null
         private var anyMask: Bits? = null
-        private var entityAdded: EntitiesListener? = null
-        private var entityRemoved: EntitiesListener? = null
-        private var entityUpdated: EntitiesListener? = null
+        private var entityAdded: FamilyListener? = null
+        private var entityRemoved: FamilyListener? = null
+        private var entityUpdated: FamilyListener? = null
         private var noneMask: Bits? = null
         var name: String = ""
         private var predicate: (Entity) -> Boolean = { true }
 
-        fun build(): Entities {
-            val newEntities = Entities(allMask, anyMask, noneMask, entityAdded, entityRemoved, entityUpdated, name, predicate)
-            entityService.addEntities(newEntities)
-            return newEntities
+        fun build(): Family {
+            val newFamily = Family(allMask, anyMask, noneMask, entityAdded, entityRemoved, entityUpdated, name, predicate)
+            entityService.addFamily(newFamily)
+            return newFamily
         }
 
         fun all(vararg components: Class<*>) {
@@ -115,15 +115,15 @@ class Entities internal constructor(
             }
         }
 
-        fun entityAdded(listener: EntitiesListener) {
+        fun entityAdded(listener: FamilyListener) {
             entityAdded = listener
         }
 
-        fun entityRemoved(listener: EntitiesListener) {
+        fun entityRemoved(listener: FamilyListener) {
             entityRemoved = listener
         }
 
-        fun entityUpdated(listener: EntitiesListener) {
+        fun entityUpdated(listener: FamilyListener) {
             entityUpdated = listener
         }
 
@@ -142,7 +142,7 @@ class Entities internal constructor(
         }
     }
 
-    class EntitiesIterator(
+    class FamilyIterator(
         private val bag: Bag<Entity>
     ) : Iterator<Entity> {
 

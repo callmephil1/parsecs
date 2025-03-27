@@ -1,7 +1,7 @@
 package com.github.callmephil1.parsecs.ecs.dsl
 
 import com.github.callmephil1.parsecs.ecs.component.ComponentService
-import com.github.callmephil1.parsecs.ecs.entity.Entities
+import com.github.callmephil1.parsecs.ecs.entity.Family
 import com.github.callmephil1.parsecs.ecs.entity.Entity
 import com.github.callmephil1.parsecs.ecs.entity.EntityRef
 import com.github.callmephil1.parsecs.ecs.entity.EntityService
@@ -10,7 +10,7 @@ interface ParsecsDsl {
     val componentService: ComponentService
     val entityService: EntityService
 
-    fun entities(configure: Entities.Builder.() -> Unit): Entities = entityService.entities(configure)
+    fun family(configure: Family.Builder.() -> Unit): Family = entityService.family(configure)
 
     fun entity(configure: Entity.() -> Unit): Entity = entityService.entity(configure)
 
@@ -54,7 +54,7 @@ interface ParsecsDsl {
     }
     fun EntityRef.update(block: Entity.() -> Unit) = this.entity.update(block)
 
-    fun Entities.Builder.all(vararg component: Component<*>) = this.all(*component.map { it.clazz }.toTypedArray())
-    fun Entities.Builder.any(vararg component: Component<*>) = this.any(*component.map { it.clazz }.toTypedArray())
-    fun Entities.Builder.none(vararg component: Component<*>) = this.none(*component.map { it.clazz }.toTypedArray())
+    fun Family.Builder.all(vararg component: Component<*>) = this.all(*component.map { it.clazz }.toTypedArray())
+    fun Family.Builder.any(vararg component: Component<*>) = this.any(*component.map { it.clazz }.toTypedArray())
+    fun Family.Builder.none(vararg component: Component<*>) = this.none(*component.map { it.clazz }.toTypedArray())
 }

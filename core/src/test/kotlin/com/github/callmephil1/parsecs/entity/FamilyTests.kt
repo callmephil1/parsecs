@@ -17,11 +17,11 @@ private class ParallelTestComponent {
     var value: Int = 0
 }
 
-class EntitiesTests {
+class FamilyTests {
 
     @Test
     fun `Entities with all components when checking if interested it should succeed`() {
-        val entities = entityService.entities {
+        val entities = entityService.family {
             all(TestComponent::class.java, TestComponent2::class.java)
         }
 
@@ -47,7 +47,7 @@ class EntitiesTests {
 
     @Test
     fun `Entities with any components when checking if interested it should succeed`() {
-        val entities = entityService.entities {
+        val entities = entityService.family {
             any(TestComponent::class.java, TestComponent2::class.java)
         }
 
@@ -79,7 +79,7 @@ class EntitiesTests {
 
     @Test
     fun `Entities with none components when checking if interested it should succeed`() {
-        val entities = entityService.entities {
+        val entities = entityService.family {
             none(TestComponent::class.java, TestComponent2::class.java)
         }
 
@@ -105,7 +105,7 @@ class EntitiesTests {
 
     @Test
     fun `Entities with a predicate should succeed`() {
-        val entities = entityService.entities {
+        val entities = entityService.family {
             all(TestComponent::class.java)
 
             predicate {
@@ -135,7 +135,7 @@ class EntitiesTests {
 
     @Test
     fun `Performing a parallelForEach should process all non-null items`() {
-        val entities = entityService.entities {
+        val entities = entityService.family {
             all(ParallelTestComponent::class.java)
         }
 

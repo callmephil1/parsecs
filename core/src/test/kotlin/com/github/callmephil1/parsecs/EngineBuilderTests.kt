@@ -25,7 +25,7 @@ class TestUpdateSystem(
     val entityService: EntityService
 ) : UpdateSystem {
 
-    val entities = entityService.entities {
+    val entities = entityService.family {
         all(TestComponent::class.java)
     }
 

@@ -13,30 +13,31 @@ class EntityService internal constructor(
     private val logger = KotlinLogging.logger {}
 
     private val createdEntities = Stack<Entity>()
-    private val entities = mutableListOf<Entities>()
+    private val families = mutableListOf<Family>()
     private val updatedEntities = Stack<Entity>()
     private val releasedEntities = Stack<Entity>()
 
     private val entityBag = Bag<Entity>()
     private val pool = Pool(Entity::class.java)
 
-    internal fun addEntities(entities: Entities) = this.entities.add(entities)
+    internal fun addFamily(family: Family) = this.families.add(family)
 
     internal fun createEntities() {
         while (!createdEntities.empty()) {
             val entity = createdEntities.pop()
 
-            for (i in entities.indices) {
-                if (entities[i].isInterested(entity)) {
-                    logger.debug { "Adding $entity to ${entities[i]}" }
-                    entities[i].add(entity)
+            for (i in families.indices) {
+                val family = families[i]
+                if (family.isInterested(entity)) {
+                    logger.debug { "Adding $entity to $family" }
+                    family.add(entity)
                 }
             }
         }
     }
 
-    fun entities(configure: Entities.Builder.() -> Unit): Entities {
-        val builder = Entities.Builder(componentService = componentService, entityService = this)
+    fun family(configure: Family.Builder.() -> Unit): Family {
+        val builder = Family.Builder(componentService = componentService, entityService = this)
         configure(builder)
         return builder.build()
     }
@@ -75,10 +76,11 @@ class EntityService internal constructor(
             if (entity.index == -1)
                 continue
 
-            for (i in entities.indices) {
-                if (entities[i].has(entity)) {
-                    logger.debug { "Removing $entity from ${entities[i]}" }
-                    entities[i].remove(entity)
+            for (i in families.indices) {
+                val family = families[i]
+                if (family.has(entity)) {
+                    logger.debug { "Removing $entity from $family" }
+                    family.remove(entity)
                 }
             }
 
@@ -104,15 +106,17 @@ class EntityService internal constructor(
             if (entity.index == -1)
                 continue
 
-            for(i in entities.indices) {
-                if (entities[i].has(entity)) {
-                    if (entities[i].isInterested(entity)) {
-                        entities[i].update(entity)
+            for(i in families.indices) {
+                val family = families[i]
+
+                if (family.has(entity)) {
+                    if (family.isInterested(entity)) {
+                        family.update(entity)
                     } else {
-                        entities[i].remove(entity)
+                        family.remove(entity)
                     }
-                } else if (entities[i].isInterested(entity)) {
-                    entities[i].add(entity)
+                } else if (family.isInterested(entity)) {
+                    family.add(entity)
                 }
             }
         }

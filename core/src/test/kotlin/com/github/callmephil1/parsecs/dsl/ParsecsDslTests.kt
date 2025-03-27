@@ -28,12 +28,12 @@ class ParsecsDslTests : ParsecsDsl {
     override val componentService = ComponentService()
     override val entityService = EntityService(componentService)
 
-    private val entities1 = entities {
+    private val entities1 = family {
         name = "1"
         all(DslTestComponent1, DslTestComponent3)
     }
 
-    private val entities2 = entities {
+    private val entities2 = family {
         name = "2"
         all(DslTestComponent2, DslTestComponent3)
     }
