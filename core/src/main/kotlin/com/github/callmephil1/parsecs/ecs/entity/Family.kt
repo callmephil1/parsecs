@@ -31,7 +31,7 @@ class Family internal constructor(
     operator fun get(index: Int) = _entities[index]
 
     fun has(entity: Entity) = has(entity.index)
-    fun has(index: Int) = _entities[index] != null
+    fun has(index: Int) = index < _entities.count && _entities[index] != null
 
     internal fun isInterested(entity: Entity) = (allMask == null || entity.componentMask.contains(allMask)) &&
             (anyMask == null || entity.componentMask.intersects(anyMask)) &&
@@ -65,12 +65,24 @@ class Family internal constructor(
         jobs.joinAll()
     }
 
-    internal fun remove(entity: Entity) {
-        _entities[entity.index] = null
+    internal fun remove(entity: Entity, with: Entity?) {
+        when {
+            with == null -> {
+                _entities[entity.index] = null
+            }
+            _entities.has(with.index) -> {
+                _entities[entity.index] = with
+                _entities[with.index] = null
+            }
+            else -> {
+                _entities[entity.index] = null
+            }
+        }
+
         entityRemoved?.invoke(entity)
     }
 
-    override fun toString(): String = "Entities(name: '$name', hashcode: ${hashCode()})"
+    override fun toString(): String = "Family(name: '$name', hashcode: ${hashCode()})"
 
     internal fun update(entity: Entity) {
         entityUpdated?.invoke(entity)

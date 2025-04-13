@@ -49,7 +49,7 @@ dependencies {
 
 tasks.shadowJar {
     archiveClassifier.set("")
-    relocate("io.github.oshai.kotlinlogging", "parsecs.shaded.kotlinloggin")
+    relocate("io.github.oshai.kotlinlogging", "parsecs.shaded.kotlinlogging")
 }
 
 tasks.test {

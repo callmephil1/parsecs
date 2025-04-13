@@ -1,6 +1,6 @@
 package com.github.callmephil1.parsecs.ecs.system
 
-import com.github.callmephil1.parsecs.ecs.collections.DirectedAcyclicGraph
+import com.github.callmephil1.parsecs.ecs.ds.DirectedAcyclicGraph
 import kotlinx.coroutines.*
 
 interface SystemService {

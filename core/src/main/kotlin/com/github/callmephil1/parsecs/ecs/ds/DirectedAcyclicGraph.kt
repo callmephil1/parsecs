@@ -1,4 +1,4 @@
-package com.github.callmephil1.parsecs.ecs.collections
+package com.github.callmephil1.parsecs.ecs.ds
 
 class CircularReference(
     first: Any,

@@ -76,21 +76,25 @@ class EntityService internal constructor(
             if (entity.index == -1)
                 continue
 
+            val movedEntity = entityBag.removeAt(entity.index)
+
+            logger.debug { "Removing $entity with $movedEntity" }
+
+            if (entity === movedEntity)
+                println()
+
             for (i in families.indices) {
                 val family = families[i]
-                if (family.has(entity)) {
-                    logger.debug { "Removing $entity from $family" }
-                    family.remove(entity)
-                }
+                family.remove(entity, movedEntity)
             }
 
-            val movedEntity = entityBag.removeAt(entity.index)
             if (movedEntity != null) {
                 componentService.release(entity, movedEntity)
                 movedEntity.index = entity.index
             }
 
             entity.index = -1
+            entity.tag = ""
             entity.componentMask.setAll(false)
             entity.version += 1u
             pool.release(entity)
@@ -113,7 +117,7 @@ class EntityService internal constructor(
                     if (family.isInterested(entity)) {
                         family.update(entity)
                     } else {
-                        family.remove(entity)
+                        family.remove(entity, null)
                     }
                 } else if (family.isInterested(entity)) {
                     family.add(entity)

@@ -25,10 +25,14 @@ interface ParsecsDsl {
     operator fun <T : Any> EntityRef.get(component: Class<T>) = this.entity[component]
     operator fun <T : Any> EntityRef.get(component: Component<T>) = this.entity[component]
 
-    fun <T : Any> Entity.has(component: Class<T>) = componentService.getMapper(component).has(this)
-    fun <T : Any> Entity.has(component: Component<T>) = componentService.getMapper(component).has(this)
-    fun <T : Any> EntityRef.has(component: Class<T>) = this.entity.has(component)
-    fun <T : Any> EntityRef.has(component: Component<T>) = this.entity[component]
+    fun Entity.has(component: Class<*>) = componentService.getMapper(component).has(this)
+    fun Entity.has(component: Component<*>) = componentService.getMapper(component).has(this)
+    fun EntityRef.has(component: Class<*>) = this.entity.has(component)
+    fun EntityRef.has(component: Component<*>) = this.entity.has(component)
+    fun Entity.hasAll(vararg component: Class<*>) = component.all { has(it) }
+    fun Entity.hasAll(vararg component: Component<*>) = component.all { has(it) }
+    fun EntityRef.hasAll(vararg component: Class<*>) = component.all { this.entity.has(it) }
+    fun EntityRef.hasAll(vararg component: Component<*>) = component.all { this.entity.has(it) }
 
     fun <T : Any> Entity.obtainAndSet(component: Component<T>, block: (T) -> Unit = {}): T {
         val newComponent = component.obtain()

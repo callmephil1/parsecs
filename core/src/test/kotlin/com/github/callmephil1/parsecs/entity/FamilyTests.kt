@@ -20,8 +20,8 @@ private class ParallelTestComponent {
 class FamilyTests {
 
     @Test
-    fun `Entities with all components when checking if interested it should succeed`() {
-        val entities = entityService.family {
+    fun `Families with all components when checking if interested it should succeed`() {
+        val family = entityService.family {
             all(TestComponent::class.java, TestComponent2::class.java)
         }
 
@@ -40,14 +40,14 @@ class FamilyTests {
             this.componentMask[componentService.getComponentIndex(TestComponent4::class.java)] = true
         }
 
-        assertTrue(entities.isInterested(matchEntity))
-        assertFalse(entities.isInterested(mismatchEntity))
-        assertFalse(entities.isInterested(mismatchEntity2))
+        assertTrue(family.isInterested(matchEntity))
+        assertFalse(family.isInterested(mismatchEntity))
+        assertFalse(family.isInterested(mismatchEntity2))
     }
 
     @Test
-    fun `Entities with any components when checking if interested it should succeed`() {
-        val entities = entityService.family {
+    fun `Families with any components when checking if interested it should succeed`() {
+        val family = entityService.family {
             any(TestComponent::class.java, TestComponent2::class.java)
         }
 
@@ -71,15 +71,15 @@ class FamilyTests {
             this.componentMask[componentService.getComponentIndex(TestComponent4::class.java)] = true
         }
 
-        assertTrue(entities.isInterested(matchEntity))
-        assertTrue(entities.isInterested(matchEntity2))
-        assertTrue(entities.isInterested(matchEntity3))
-        assertFalse(entities.isInterested(mismatchEntity))
+        assertTrue(family.isInterested(matchEntity))
+        assertTrue(family.isInterested(matchEntity2))
+        assertTrue(family.isInterested(matchEntity3))
+        assertFalse(family.isInterested(mismatchEntity))
     }
 
     @Test
-    fun `Entities with none components when checking if interested it should succeed`() {
-        val entities = entityService.family {
+    fun `Families with none components when checking if interested it should succeed`() {
+        val family = entityService.family {
             none(TestComponent::class.java, TestComponent2::class.java)
         }
 
@@ -98,14 +98,14 @@ class FamilyTests {
             this.componentMask[componentService.getComponentIndex(TestComponent3::class.java)] = true
         }
 
-        assertTrue(entities.isInterested(matchEntity))
-        assertFalse(entities.isInterested(mismatchEntity))
-        assertFalse(entities.isInterested(mismatchEntity2))
+        assertTrue(family.isInterested(matchEntity))
+        assertFalse(family.isInterested(mismatchEntity))
+        assertFalse(family.isInterested(mismatchEntity2))
     }
 
     @Test
-    fun `Entities with a predicate should succeed`() {
-        val entities = entityService.family {
+    fun `Families with a predicate should succeed`() {
+        val family = entityService.family {
             all(TestComponent::class.java)
 
             predicate {
@@ -129,13 +129,13 @@ class FamilyTests {
             this.componentMask[componentService.getComponentIndex(TestComponent::class.java)] = true
         }
 
-        assertTrue(entities.isInterested(matchEntity))
-        assertFalse(entities.isInterested(mismatchEntity))
+        assertTrue(family.isInterested(matchEntity))
+        assertFalse(family.isInterested(mismatchEntity))
     }
 
     @Test
     fun `Performing a parallelForEach should process all non-null items`() {
-        val entities = entityService.family {
+        val family = entityService.family {
             all(ParallelTestComponent::class.java)
         }
 
@@ -144,14 +144,14 @@ class FamilyTests {
             entity.index = i
             parallelTestComponentMapper[entity] = parallelTestComponentMapper.obtain()
 
-            entities.add(entity)
+            family.add(entity)
         }
 
-        entities.parallelForEach {
+        family.parallelForEach {
             parallelTestComponentMapper[it].value += 1
         }
 
-        entities.forEach {
+        family.forEach {
             assertEquals(parallelTestComponentMapper[it].value, 1)
         }
     }

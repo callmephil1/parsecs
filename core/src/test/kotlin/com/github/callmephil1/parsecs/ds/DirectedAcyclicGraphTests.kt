@@ -1,7 +1,7 @@
-package com.github.callmephil1.parsecs.collections
+package com.github.callmephil1.parsecs.ds
 
-import com.github.callmephil1.parsecs.ecs.collections.CircularReference
-import com.github.callmephil1.parsecs.ecs.collections.DirectedAcyclicGraph
+import com.github.callmephil1.parsecs.ecs.ds.CircularReference
+import com.github.callmephil1.parsecs.ecs.ds.DirectedAcyclicGraph
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
 import kotlin.test.assertEquals

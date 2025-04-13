@@ -29,7 +29,9 @@ class BitsTests {
 
         bits.setAll(true)
 
-        assertTrue(bits[10])
+        assertTrue(bits[0])
+        assertTrue(bits[31])
+        assertFalse(bits[32])
 
         bits.setAll(false)
 

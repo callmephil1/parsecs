@@ -1,6 +1,6 @@
 package com.github.callmephil1.parsecs.system
 
-import com.github.callmephil1.parsecs.ecs.collections.CircularReference
+import com.github.callmephil1.parsecs.ecs.ds.CircularReference
 import com.github.callmephil1.parsecs.ecs.system.AsynchronousSequentialSystemService
 import com.github.callmephil1.parsecs.ecs.system.AsynchronousUpdateSystem
 import com.github.callmephil1.parsecs.ecs.system.SystemDescriptor
