@@ -1,4 +1,4 @@
-package com.github.callmephil1.parsecs.ecs
+package com.github.callmephil1.parsecs.ecs.di
 
 import java.lang.reflect.InvocationTargetException
 

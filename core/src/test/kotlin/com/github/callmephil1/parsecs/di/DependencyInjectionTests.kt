@@ -1,6 +1,6 @@
-package com.github.callmephil1.parsecs
+package com.github.callmephil1.parsecs.di
 
-import com.github.callmephil1.parsecs.ecs.DependencyInjection
+import com.github.callmephil1.parsecs.ecs.di.DependencyInjection
 import kotlin.test.*
 
 class ScopedClass

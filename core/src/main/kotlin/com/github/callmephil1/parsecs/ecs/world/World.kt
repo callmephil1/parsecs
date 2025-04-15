@@ -1,7 +1,7 @@
 package com.github.callmephil1.parsecs.ecs.world
 
 import com.github.callmephil1.parsecs.EventBus
-import com.github.callmephil1.parsecs.ecs.DependencyInjection
+import com.github.callmephil1.parsecs.ecs.di.DependencyInjection
 import com.github.callmephil1.parsecs.ecs.StopWatch
 import com.github.callmephil1.parsecs.ecs.component.ComponentService
 import com.github.callmephil1.parsecs.ecs.dsl.Component
