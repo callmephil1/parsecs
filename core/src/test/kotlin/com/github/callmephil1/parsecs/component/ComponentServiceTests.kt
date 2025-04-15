@@ -12,9 +12,9 @@ class ComponentServiceTests {
     @Test
     fun `Get mapper should succeed`() {
         val componentService = ComponentService()
-        val entityService = EntityService(componentService)
+        val entityService = EntityService()
 
-        val entity = entityService.entity {  }
+        val entity = entityService.obtain()
         val mapper = componentService.getMapper(ComponentTest::class.java)
         mapper[entity] = ComponentTest()
     }

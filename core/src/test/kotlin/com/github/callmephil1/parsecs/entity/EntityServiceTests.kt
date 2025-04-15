@@ -14,26 +14,21 @@ class EntityServiceTests {
     @BeforeTest
     fun setup() {
         componentService = ComponentService()
-        entityService = EntityService(componentService)
+        entityService = EntityService()
     }
 
     @Test
     fun `Get new entity should succeed`() {
-        val entity = entityService.entity {  }
-        entityService.createEntities()
+        val entity = entityService.obtain()
         assertNotEquals(0, entityService.entityCount)
         assertNotEquals(-1, entity.index)
     }
 
     @Test
     fun `Release entity`() {
-        val entity = entityService.entity {  }
-        entityService.createEntities()
-
+        val entity = entityService.obtain()
         entityService.release(entity)
-        entityService.releaseEntities()
 
         assertEquals(0, entityService.entityCount)
-        assertEquals(-1, entity.index)
     }
 }

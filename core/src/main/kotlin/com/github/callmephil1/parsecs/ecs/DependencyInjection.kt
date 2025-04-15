@@ -11,7 +11,12 @@ class MissingDependencyError(
 class DependencyInjection internal constructor(
     private val getters: MutableMap<Class<*>, DependencyInjection.() -> Any>
 ) {
-    fun <T> get(clazz: Class<T>) = getters[clazz]!!.invoke(this) as T
+    fun <T> get(clazz: Class<T>): T {
+        val dependencyGetter = getters[clazz]
+            ?: throw MissingDependencyError(DependencyInjection::class.java, clazz, NullPointerException())
+
+        return dependencyGetter.invoke(this) as T
+    }
     inline fun <reified T : Any> get() = this.get(T::class.java)
 
     class Builder {

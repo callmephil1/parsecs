@@ -3,29 +3,24 @@ package com.github.callmephil1.parsecs.ecs.system
 import com.github.callmephil1.parsecs.ecs.ds.DirectedAcyclicGraph
 import kotlinx.coroutines.*
 
-interface SystemService {
+internal interface SystemService {
+    val systems: List<System>
+
     fun engineInitialized()
     fun engineLoopEnd()
     fun engineLoopStart()
     fun renderSystemLoop(delta: Float)
     fun updateSystemLoop(delta: Float)
-
-    class Configuration {
-        var asynchronous: Boolean = false
-        internal var systems: List<Class<*>> = emptyList()
-
-        fun systems(vararg system: Class<*>) {
-            systems = system.toList()
-        }
-    }
 }
 
 internal class AsynchronousSystemService(
+    override val systems: List<System>,
     private val monitorSystems: List<MonitorSystem>,
     private val renderSystems: List<RenderSystem>,
     private val updateSystemDependencyGraph: Map<AsynchronousUpdateSystem, Set<AsynchronousUpdateSystem>>,
     private val updateExecutionSteps: List<List<AsynchronousUpdateSystem>>
 ) : SystemService {
+
     private val scope = CoroutineScope(Dispatchers.Default)
 
     override fun engineInitialized() {
@@ -101,6 +96,7 @@ internal class AsynchronousSystemService(
             }
 
             return AsynchronousSystemService(
+                systems = systems,
                 monitorSystems = monitorSystems,
                 renderSystems = renderSystems,
                 updateSystemDependencyGraph = dag.getDependencyGraph(),
@@ -111,6 +107,7 @@ internal class AsynchronousSystemService(
 }
 
 internal class AsynchronousSequentialSystemService internal constructor(
+    override val systems: List<System>,
     private val monitorSystems: List<MonitorSystem>,
     private val renderSystems: List<RenderSystem>,
     val updateExecutionSteps: List<List<AsynchronousUpdateSystem>>
@@ -188,6 +185,7 @@ internal class AsynchronousSequentialSystemService internal constructor(
             }
 
             return AsynchronousSequentialSystemService(
+                systems = systems,
                 monitorSystems = monitorSystems,
                 renderSystems = renderSystems,
                 updateExecutionSteps = dag.toExecutionSteps()
@@ -197,7 +195,7 @@ internal class AsynchronousSequentialSystemService internal constructor(
 }
 
 internal class SynchronousSystemService internal constructor(
-    private val systems: List<System>,
+    override val systems: List<System>,
     private val monitorSystems: List<MonitorSystem>,
     private val renderSystems: List<RenderSystem>,
     private val updateSystems: List<UpdateSystem>

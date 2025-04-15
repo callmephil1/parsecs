@@ -4,6 +4,9 @@ import com.github.callmephil1.parsecs.ecs.component.ComponentMapper
 import com.github.callmephil1.parsecs.ecs.component.ComponentService
 import com.github.callmephil1.parsecs.ecs.entity.Entity
 import com.github.callmephil1.parsecs.ecs.entity.EntityService
+import com.github.callmephil1.parsecs.ecs.family.FamilyService
+import com.github.callmephil1.parsecs.ecs.world.World
+import com.github.callmephil1.parsecs.ecs.world.world
 import org.junit.jupiter.api.BeforeAll
 import kotlin.test.*
 
@@ -21,7 +24,7 @@ class FamilyTests {
 
     @Test
     fun `Families with all components when checking if interested it should succeed`() {
-        val family = entityService.family {
+        val family = familyService.family {
             all(TestComponent::class.java, TestComponent2::class.java)
         }
 
@@ -47,7 +50,7 @@ class FamilyTests {
 
     @Test
     fun `Families with any components when checking if interested it should succeed`() {
-        val family = entityService.family {
+        val family = familyService.family {
             any(TestComponent::class.java, TestComponent2::class.java)
         }
 
@@ -79,7 +82,7 @@ class FamilyTests {
 
     @Test
     fun `Families with none components when checking if interested it should succeed`() {
-        val family = entityService.family {
+        val family = familyService.family {
             none(TestComponent::class.java, TestComponent2::class.java)
         }
 
@@ -105,7 +108,7 @@ class FamilyTests {
 
     @Test
     fun `Families with a predicate should succeed`() {
-        val family = entityService.family {
+        val family = familyService.family {
             all(TestComponent::class.java)
 
             predicate {
@@ -135,7 +138,7 @@ class FamilyTests {
 
     @Test
     fun `Performing a parallelForEach should process all non-null items`() {
-        val family = entityService.family {
+        val family = familyService.family {
             all(ParallelTestComponent::class.java)
         }
 
@@ -159,6 +162,8 @@ class FamilyTests {
     companion object {
         private lateinit var componentService: ComponentService
         private lateinit var entityService: EntityService
+        private lateinit var familyService: FamilyService
+        private lateinit var world: World
 
         private lateinit var testComponentMapper: ComponentMapper<TestComponent>
         private lateinit var testComponentMapper2: ComponentMapper<TestComponent2>
@@ -170,13 +175,15 @@ class FamilyTests {
         @BeforeAll
         fun setUp() {
             componentService = ComponentService()
+            entityService = EntityService()
+            familyService = FamilyService(componentService)
             testComponentMapper = componentService.getMapper(TestComponent::class.java)
             testComponentMapper2 = componentService.getMapper(TestComponent2::class.java)
             testComponentMapper3 = componentService.getMapper(TestComponent3::class.java)
             testComponentMapper4 = componentService.getMapper(TestComponent4::class.java)
             parallelTestComponentMapper = componentService.getMapper(ParallelTestComponent::class.java)
 
-            entityService = EntityService(componentService)
+            world = world {  }
         }
     }
 }

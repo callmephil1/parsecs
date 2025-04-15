@@ -11,6 +11,8 @@ class Pool<T>(
     }
     private val pool: Stack<T> = Stack()
 
+    fun clear() = pool.clear()
+
     fun obtain(): T {
         val item: T = if (pool.isEmpty())
             ctor.newInstance()

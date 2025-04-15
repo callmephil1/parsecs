@@ -1,11 +1,10 @@
-package com.github.callmephil1.parsecs.ecs.entity
+package com.github.callmephil1.parsecs.ecs.family
 
 import com.github.callmephil1.parsecs.ecs.collections.Bag
 import com.github.callmephil1.parsecs.ecs.collections.Bits
 import com.github.callmephil1.parsecs.ecs.component.ComponentService
+import com.github.callmephil1.parsecs.ecs.entity.Entity
 import kotlinx.coroutines.*
-
-typealias FamilyListener = (Entity) -> Unit
 
 class Family internal constructor(
     private val allMask: Bits?,
@@ -44,9 +43,9 @@ class Family internal constructor(
         val chunkSize = _entities.count / chunkCount
         val jobs = ArrayList<Job>(chunkCount)
 
-        for(i in 0 ..< chunkCount - 1) {
+        for (i in 0..<chunkCount - 1) {
             jobs.add(scope.launch {
-                for(idx in i * chunkSize ..< (i + 1) * chunkSize) {
+                for (idx in i * chunkSize..<(i + 1) * chunkSize) {
                     val entity = _entities[idx]
                     if (entity != null)
                         block(entity)
@@ -55,7 +54,7 @@ class Family internal constructor(
         }
 
         jobs.add(scope.launch {
-            for(idx in (chunkCount - 1) * chunkSize ..< _entities.count) {
+            for (idx in (chunkCount - 1) * chunkSize..<_entities.count) {
                 val entity = _entities[idx]
                 if (entity != null)
                     block(entity)
@@ -90,7 +89,6 @@ class Family internal constructor(
 
     class Builder internal constructor(
         private val componentService: ComponentService,
-        private val entityService: EntityService
     ) {
         private var allMask: Bits? = null
         private var anyMask: Bits? = null
@@ -102,8 +100,8 @@ class Family internal constructor(
         private var predicate: (Entity) -> Boolean = { true }
 
         fun build(): Family {
-            val newFamily = Family(allMask, anyMask, noneMask, entityAdded, entityRemoved, entityUpdated, name, predicate)
-            entityService.addFamily(newFamily)
+            val newFamily =
+                Family(allMask, anyMask, noneMask, entityAdded, entityRemoved, entityUpdated, name, predicate)
             return newFamily
         }
 

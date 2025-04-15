@@ -2,127 +2,36 @@ package com.github.callmephil1.parsecs.ecs.entity
 
 import com.github.callmephil1.parsecs.ecs.collections.Bag
 import com.github.callmephil1.parsecs.ecs.collections.Pool
-import com.github.callmephil1.parsecs.ecs.component.ComponentService
 import io.github.oshai.kotlinlogging.KotlinLogging
-import java.util.*
 
-class EntityService internal constructor(
-    private val componentService: ComponentService
-) {
-
+class EntityService internal constructor() {
     private val logger = KotlinLogging.logger {}
 
-    private val createdEntities = Stack<Entity>()
-    private val families = mutableListOf<Family>()
-    private val updatedEntities = Stack<Entity>()
-    private val releasedEntities = Stack<Entity>()
-
-    private val entityBag = Bag<Entity>()
+    internal val entities = Bag<Entity>()
     private val pool = Pool(Entity::class.java)
 
-    internal fun addFamily(family: Family) = this.families.add(family)
-
-    internal fun createEntities() {
-        while (!createdEntities.empty()) {
-            val entity = createdEntities.pop()
-
-            for (i in families.indices) {
-                val family = families[i]
-                if (family.isInterested(entity)) {
-                    logger.debug { "Adding $entity to $family" }
-                    family.add(entity)
-                }
-            }
-        }
+    fun clear() {
+        entities.clear()
+        pool.clear()
     }
 
-    fun family(configure: Family.Builder.() -> Unit): Family {
-        val builder = Family.Builder(componentService = componentService, entityService = this)
-        configure(builder)
-        return builder.build()
-    }
+    val entityCount get() = entities.count
 
-    fun entity(configure: Entity.() -> Unit): Entity {
-        val newEntity = obtain()
-        createdEntities.add(newEntity)
-        configure(newEntity)
-        return newEntity
-    }
-
-    val entityCount get() = entityBag.count
-
-    fun get(index: Int) = entityBag[index]
+    fun get(index: Int) = entities[index]
 
     internal fun obtain(): Entity {
         val entity = pool.obtain()
-        entity.index = entityBag.count
-        entityBag.add(entity)
-
-        logger.debug { "Obtained new entity $entity" }
-
+        entity.index = entities.count
+        entities.add(entity)
         return entity
     }
 
-    fun release(entity: Entity) = releasedEntities.push(entity)
+    fun release(entity: Entity): Entity
+    {
+        val movedEntity = entities.removeAt(entity.index)!!
+        pool.release(entity)
+        return movedEntity
+    }
 
     fun release(entityRef: EntityRef) = release(entityRef.entity)
-
-    internal fun releaseEntities() {
-        while(!releasedEntities.empty()) {
-            val entity = releasedEntities.pop()
-
-            logger.debug { "Releasing entity $entity" }
-
-            if (entity.index == -1)
-                continue
-
-            val movedEntity = entityBag.removeAt(entity.index)
-
-            logger.debug { "Removing $entity with $movedEntity" }
-
-            if (entity === movedEntity)
-                println()
-
-            for (i in families.indices) {
-                val family = families[i]
-                family.remove(entity, movedEntity)
-            }
-
-            if (movedEntity != null) {
-                componentService.release(entity, movedEntity)
-                movedEntity.index = entity.index
-            }
-
-            entity.index = -1
-            entity.tag = ""
-            entity.componentMask.setAll(false)
-            entity.version += 1u
-            pool.release(entity)
-        }
-    }
-
-    fun update(entity: Entity) { updatedEntities.push(entity) }
-
-    internal fun updateEntities() {
-        while(!updatedEntities.empty()) {
-            val entity = updatedEntities.pop()
-
-            if (entity.index == -1)
-                continue
-
-            for(i in families.indices) {
-                val family = families[i]
-
-                if (family.has(entity)) {
-                    if (family.isInterested(entity)) {
-                        family.update(entity)
-                    } else {
-                        family.remove(entity, null)
-                    }
-                } else if (family.isInterested(entity)) {
-                    family.add(entity)
-                }
-            }
-        }
-    }
 }

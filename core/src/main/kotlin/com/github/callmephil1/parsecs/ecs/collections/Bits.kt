@@ -6,11 +6,11 @@ class Bits(
     initialSize: Int = 1
 ) {
 
-    private var chunks: Array<Int>
+    private var chunks: Array<UInt>
     private var count = 0
 
     init {
-        chunks = Array(initialSize) { 0 }
+        chunks = Array(initialSize) { 0u }
     }
 
     fun clear() = setAll(false)
@@ -25,8 +25,8 @@ class Bits(
         val maxSize = if (chunks.size >= mask.chunks.size) chunks.size else mask.chunks.size
 
         for (i in 0 ..< maxSize) {
-            val maskChunk = if (i < mask.chunks.size) mask.chunks[i] else 0
-            val thisChunk = if (i < chunks.size) chunks[i] else 0
+            val maskChunk = if (i < mask.chunks.size) mask.chunks[i] else 0u
+            val thisChunk = if (i < chunks.size) chunks[i] else 0u
 
             if ((thisChunk and maskChunk) != maskChunk)
                 return false
@@ -40,7 +40,7 @@ class Bits(
 
         val newCount = (target / 32) + 1
         count = 32 * newCount
-        val newArray = Array(newCount) { 0 }
+        val newArray = Array(newCount) { 0u }
         chunks.copyInto(newArray)
         chunks = newArray
     }
@@ -48,13 +48,13 @@ class Bits(
     operator fun get(index: Int) = getBit(index)
 
     fun getBit(index: Int): Boolean {
-        if (index > chunks.size * Int.SIZE_BITS)
+        if (index > chunks.size * Int.SIZE_BITS - 1)
             return false
 
         val chunkIndex = getChunkIndex(index)
         val chunk = chunks[chunkIndex]
-        val mask = 1 shl (index) % Int.SIZE_BITS
-        return (chunk and mask) != 0
+        val mask = 1u shl (index) % UInt.SIZE_BITS
+        return (chunk and mask) != 0u
     }
 
     fun getSetIndicies(): List<Int> {
@@ -74,7 +74,7 @@ class Bits(
     fun intersects(other: Bits): Boolean {
         val end = min(chunks.size, other.chunks.size) - 1
         for(i in 0 .. end) {
-            if (chunks[i] and other.chunks[i] != 0)
+            if (chunks[i] and other.chunks[i] != 0u)
                 return true
         }
         return false
@@ -82,7 +82,7 @@ class Bits(
 
     fun isEmpty(): Boolean {
         for (i in 0 .. chunks.size) {
-            if (chunks[i] != 0)
+            if (chunks[i] != 0u)
                 return false
         }
         return true
@@ -108,7 +108,7 @@ class Bits(
     operator fun set(index: Int, value: Boolean) = setBit(index, value)
 
     fun setAll(value: Boolean) {
-        val chunk = if (value) Int.MAX_VALUE else 0
+        val chunk = if (value) UInt.MAX_VALUE else 0u
 
         for (i in chunks.indices)
             chunks[i] = chunk
@@ -119,7 +119,7 @@ class Bits(
 
         val chunkIndex = getChunkIndex(index)
         var chunk = chunks[chunkIndex]
-        val mask = 1 shl (index % Int.SIZE_BITS)
+        val mask = 1u shl (index % Int.SIZE_BITS)
 
         chunk = if (value)
             chunk or mask

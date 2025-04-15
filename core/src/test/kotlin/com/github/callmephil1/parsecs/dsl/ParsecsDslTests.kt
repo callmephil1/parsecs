@@ -1,9 +1,9 @@
 package com.github.callmephil1.parsecs.dsl
 
-import com.github.callmephil1.parsecs.ecs.component.ComponentService
 import com.github.callmephil1.parsecs.ecs.dsl.Component
 import com.github.callmephil1.parsecs.ecs.dsl.ParsecsDsl
-import com.github.callmephil1.parsecs.ecs.entity.EntityService
+import com.github.callmephil1.parsecs.ecs.world.World
+import com.github.callmephil1.parsecs.ecs.world.world
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -25,8 +25,9 @@ private class DslTestComponent3 {
 }
 
 class ParsecsDslTests : ParsecsDsl {
-    override val componentService = ComponentService()
-    override val entityService = EntityService(componentService)
+    override val world: World = world {
+
+    }
 
     private val entities1 = family {
         name = "1"
@@ -65,7 +66,7 @@ class ParsecsDslTests : ParsecsDsl {
             obtainAndSet(DslTestComponent3)
         }
 
-        entityService.createEntities()
+        world.update(0f)
 
         assertEquals(1, entities1.count)
         assertEquals(entity1, entities1[entity1.index])

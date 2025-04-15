@@ -12,6 +12,10 @@ class Bag<T>(initialSize: Int = 1) : Iterable<T?> {
         data[count++] = value
     }
 
+    fun clear() {
+        data = Array(0) { null }
+    }
+
     private fun ensureCapacity(target: Int) {
         if (target >= data.size) {
             val newData = Array<Any?>((target * 1.5).toInt() + 1) { null }
@@ -89,6 +93,7 @@ class ReadOnlyBag<T> internal constructor(
 ): Iterable<T?> {
     val capacity get() = bag.capacity
     val count get() = bag.count
+
     operator fun get(index: Int): T? = bag[index]
     fun indexOf(item: T?) = bag.indexOf(item)
     override fun iterator() = bag.iterator()
