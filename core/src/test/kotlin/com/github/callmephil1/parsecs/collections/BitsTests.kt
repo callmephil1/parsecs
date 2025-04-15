@@ -37,4 +37,20 @@ class BitsTests {
 
         assertFalse(bits[10])
     }
+
+    @Test
+    fun `Is empty should succeed if all chunks are zero`() {
+        val bits = Bits()
+
+        assertTrue(bits.isEmpty())
+
+        bits[10] = true
+        bits[40] = true
+
+        assertFalse(bits.isEmpty())
+
+        bits.setAll(false)
+
+        assertTrue(bits.isEmpty())
+    }
 }

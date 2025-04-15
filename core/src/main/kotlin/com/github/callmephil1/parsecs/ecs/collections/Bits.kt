@@ -81,7 +81,7 @@ class Bits(
     }
 
     fun isEmpty(): Boolean {
-        for (i in 0 .. chunks.size) {
+        for (i in chunks.indices) {
             if (chunks[i] != 0u)
                 return false
         }
