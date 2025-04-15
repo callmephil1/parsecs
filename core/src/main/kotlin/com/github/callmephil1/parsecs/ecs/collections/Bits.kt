@@ -16,7 +16,7 @@ class Bits(
     fun clear() = setAll(false)
 
     fun clone(): Bits {
-        val newBits = Bits(chunks.size * Int.SIZE_BITS)
+        val newBits = Bits(chunks.size * UInt.SIZE_BITS)
         chunks.copyInto(newBits.chunks)
         return newBits
     }
@@ -48,7 +48,7 @@ class Bits(
     operator fun get(index: Int) = getBit(index)
 
     fun getBit(index: Int): Boolean {
-        if (index > chunks.size * Int.SIZE_BITS - 1)
+        if (index > chunks.size * UInt.SIZE_BITS - 1)
             return false
 
         val chunkIndex = getChunkIndex(index)
@@ -69,7 +69,7 @@ class Bits(
         return indices
     }
 
-    private fun getChunkIndex(index: Int) = index / (Int.SIZE_BITS)
+    private fun getChunkIndex(index: Int) = index / (UInt.SIZE_BITS)
 
     fun intersects(other: Bits): Boolean {
         val end = min(chunks.size, other.chunks.size) - 1
@@ -119,7 +119,7 @@ class Bits(
 
         val chunkIndex = getChunkIndex(index)
         var chunk = chunks[chunkIndex]
-        val mask = 1u shl (index % Int.SIZE_BITS)
+        val mask = 1u shl (index % UInt.SIZE_BITS)
 
         chunk = if (value)
             chunk or mask
