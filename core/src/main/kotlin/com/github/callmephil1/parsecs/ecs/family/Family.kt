@@ -1,6 +1,6 @@
 package com.github.callmephil1.parsecs.ecs.family
 
-import com.github.callmephil1.parsecs.ecs.collections.Bag
+import com.github.callmephil1.parsecs.ecs.collections.MutableBag
 import com.github.callmephil1.parsecs.ecs.collections.Bits
 import com.github.callmephil1.parsecs.ecs.component.ComponentService
 import com.github.callmephil1.parsecs.ecs.entity.Entity
@@ -17,7 +17,7 @@ class Family internal constructor(
     private val predicate: (Entity) -> Boolean
 ) : Iterable<Entity> {
 
-    private val _entities = Bag<Entity>()
+    private val _entities = MutableBag<Entity>()
     private val scope = CoroutineScope(Dispatchers.Default)
 
     val count: Int get() = _entities.count
@@ -153,7 +153,7 @@ class Family internal constructor(
     }
 
     class FamilyIterator(
-        private val bag: Bag<Entity>
+        private val bag: MutableBag<Entity>
     ) : Iterator<Entity> {
 
         private var index: Int = -1

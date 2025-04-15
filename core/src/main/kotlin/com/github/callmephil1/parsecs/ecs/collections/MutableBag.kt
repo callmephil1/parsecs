@@ -1,6 +1,6 @@
 package com.github.callmephil1.parsecs.ecs.collections
 
-class Bag<T>(initialSize: Int = 1) : Iterable<T?> {
+class MutableBag<T>(initialSize: Int = 1) : Iterable<T?> {
 
     val capacity get() = data.size
     var count: Int = 0
@@ -67,7 +67,7 @@ class Bag<T>(initialSize: Int = 1) : Iterable<T?> {
         return element
     }
 
-    fun toReadOnly() = ReadOnlyBag(this)
+    fun toBag() = Bag(this)
 
     operator fun set(index: Int, value: T?) {
         ensureCapacity(index)
@@ -77,7 +77,7 @@ class Bag<T>(initialSize: Int = 1) : Iterable<T?> {
     }
 
     inner class BagIterator(
-        private val bag: Bag<T>
+        private val bag: MutableBag<T>
     ) : Iterator<T?> {
 
         private var index: Int = -1
@@ -88,8 +88,8 @@ class Bag<T>(initialSize: Int = 1) : Iterable<T?> {
     }
 }
 
-class ReadOnlyBag<T> internal constructor(
-    private val bag: Bag<T>
+class Bag<T> internal constructor(
+    private val bag: MutableBag<T>
 ): Iterable<T?> {
     val capacity get() = bag.capacity
     val count get() = bag.count

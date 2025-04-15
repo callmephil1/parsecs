@@ -1,6 +1,6 @@
 package com.github.callmephil1.parsecs.ecs.component
 
-import com.github.callmephil1.parsecs.ecs.collections.Bag
+import com.github.callmephil1.parsecs.ecs.collections.MutableBag
 import com.github.callmephil1.parsecs.ecs.collections.Pool
 import com.github.callmephil1.parsecs.ecs.entity.Entity
 import com.github.callmephil1.parsecs.ecs.entity.EntityRef
@@ -10,7 +10,7 @@ class ComponentMapper<T> internal constructor(
     val index: Int
 ) {
 
-    private val components = Bag<T>()
+    private val components = MutableBag<T>()
     private val pool: Pool<T> = Pool(clazz)
 
     operator fun get(index: Int) = components[index]!!

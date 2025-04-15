@@ -1,15 +1,15 @@
 package com.github.callmephil1.parsecs.collections
 
-import com.github.callmephil1.parsecs.ecs.collections.Bag
+import com.github.callmephil1.parsecs.ecs.collections.MutableBag
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class BagTests {
+class MutableBagTests {
     @Test
     fun `Add to bag and get should be same object`() {
-        val bag = Bag<Int>()
+        val bag = MutableBag<Int>()
 
         bag[0] = 10
         bag[10] = 100
@@ -21,7 +21,7 @@ class BagTests {
 
     @Test
     fun `Check is bag has an object at index`() {
-        val bag = Bag<Int>()
+        val bag = MutableBag<Int>()
 
         bag[10] = 100
 
@@ -32,7 +32,7 @@ class BagTests {
 
     @Test
     fun `Remove object from bag returns the object`() {
-        val bag = Bag<String>()
+        val bag = MutableBag<String>()
 
         bag[0] = "test1"
         bag[10] = "test10"
@@ -44,7 +44,7 @@ class BagTests {
 
     @Test
     fun `Removing object moves last object to replace it`() {
-        val bag = Bag<String>()
+        val bag = MutableBag<String>()
 
         for(i in 0..10)
             bag.add("index $i")

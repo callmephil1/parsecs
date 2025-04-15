@@ -1,13 +1,13 @@
 package com.github.callmephil1.parsecs.ecs.entity
 
-import com.github.callmephil1.parsecs.ecs.collections.Bag
+import com.github.callmephil1.parsecs.ecs.collections.MutableBag
 import com.github.callmephil1.parsecs.ecs.collections.Pool
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class EntityService internal constructor() {
     private val logger = KotlinLogging.logger {}
 
-    internal val entities = Bag<Entity>()
+    internal val entities = MutableBag<Entity>()
     private val pool = Pool(Entity::class.java)
 
     fun clear() {
