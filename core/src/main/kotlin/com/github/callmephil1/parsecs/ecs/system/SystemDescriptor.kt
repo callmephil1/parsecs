@@ -1,17 +1,17 @@
 package com.github.callmephil1.parsecs.ecs.system
 
 sealed class Dependency {
-    class Group(val name: String) : Dependency()
+    class Group(val identifier: Any) : Dependency()
     class System(val clazz: Class<*>) : Dependency()
 }
 
 class SystemDescriptor internal constructor(
     val dependencies: List<Dependency>,
-    val groups: List<String>
+    val groups: List<Any>
 ) {
     class Builder internal constructor() {
         private val dependencies = mutableSetOf<Dependency>()
-        private val groups = mutableSetOf<String>()
+        private val groups = mutableSetOf<Any>()
 
         fun build(): SystemDescriptor {
             return SystemDescriptor(
@@ -28,8 +28,12 @@ class SystemDescriptor internal constructor(
             dependencies.addAll(system.map { Dependency.System(it) })
         }
 
-        fun groups(vararg group: String) {
+        fun groups(vararg group: Any) {
             groups.addAll(group)
         }
+    }
+
+    companion object {
+        val NONE = Builder().build()
     }
 }

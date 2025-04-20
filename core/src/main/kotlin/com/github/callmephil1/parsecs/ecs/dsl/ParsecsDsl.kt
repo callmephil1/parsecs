@@ -15,6 +15,8 @@ interface ParsecsDsl {
 
     fun entity(configure: Entity.() -> Unit): Entity = world.entity(configure)
 
+    fun postUpdate(block: () -> Unit) = world.postUpdate(block)
+
     fun <T : Any> Component<T>.obtain() = world.getMapper(this).obtain()
 
     fun Entity.allComponents() : List<Any> = this.componentMask.getSetIndicies().map {

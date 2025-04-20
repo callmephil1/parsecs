@@ -1,15 +1,24 @@
 package com.github.callmephil1.parsecs.ecs.system
 
 interface System {
-    fun engineInitialized() {}
+    val descriptor: SystemDescriptor
+        get() = SystemDescriptor.NONE
+
+    fun systemDescriptor(configure: SystemDescriptor.Builder.() -> Unit): SystemDescriptor {
+        val builder = SystemDescriptor.Builder()
+        builder.configure()
+        return builder.build()
+    }
+
+    fun worldInitialized() {}
 }
 
 interface MonitorSystem: System {
-    fun engineLoopStart() {}
-    fun engineLoopEnd() {}
-
     fun systemLoopStart(system: System) {}
     fun systemLoopEnd(system: System) {}
+
+    fun worldLoopStart() {}
+    fun worldLoopEnd() {}
 }
 
 interface RenderSystem: System {
@@ -20,12 +29,4 @@ interface UpdateSystem: System {
     fun update(delta: Float)
 }
 
-interface AsynchronousUpdateSystem : UpdateSystem {
-    val descriptor: SystemDescriptor
-
-    fun systemDescriptor(configure: SystemDescriptor.Builder.() -> Unit): SystemDescriptor {
-        val builder = SystemDescriptor.Builder()
-        builder.configure()
-        return builder.build()
-    }
-}
+interface AsynchronousUpdateSystem : UpdateSystem

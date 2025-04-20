@@ -9,39 +9,37 @@ import com.github.callmephil1.parsecs.ecs.entity.Entity
 import com.github.callmephil1.parsecs.ecs.entity.EntityService
 import com.github.callmephil1.parsecs.ecs.family.Family
 import com.github.callmephil1.parsecs.ecs.family.FamilyService
-import com.github.callmephil1.parsecs.ecs.system.AsynchronousSequentialSystemService
+import com.github.callmephil1.parsecs.ecs.system.*
 import com.github.callmephil1.parsecs.ecs.system.SynchronousSystemService
-import com.github.callmephil1.parsecs.ecs.system.System
 import com.github.callmephil1.parsecs.ecs.system.SystemService
+import com.github.callmephil1.parsecs.ecs.task.TaskService
+import com.github.callmephil1.parsecs.ecs.task.TaskServiceImpl
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.*
+import kotlin.collections.ArrayDeque
 
 class World(
     private val componentService: ComponentService,
     private val entityService: EntityService,
     private val eventBus: EventBus,
     private val familyService: FamilyService,
-    val name: String
-) {
+    private val taskService: TaskServiceImpl,
+    val identifier: Any,
+) : TaskService by taskService {
+
     private lateinit var systemService: SystemService
 
-    private val logger = KotlinLogging.logger {  }
+    private val logger = KotlinLogging.logger {  }.debug {  }
     private val stopWatch = StopWatch()
 
     private val createdEntities = Stack<Entity>()
+    private val deferredUpdates = ArrayDeque<() -> Unit>()
     private val updatedEntities = Stack<Entity>()
     private val releasedEntities = Stack<Entity>()
     private val newFamilies = Stack<Family>()
 
     val entities get() = entityService.entities
     val systems get() = systemService.systems
-
-    fun entity(configure: Entity.() -> Unit): Entity {
-        val newEntity = entityService.obtain()
-        createdEntities.push(newEntity)
-        newEntity.configure()
-        return newEntity
-    }
 
     private fun createEntities() {
         while (!createdEntities.empty()) {
@@ -60,7 +58,14 @@ class World(
         }
     }
 
-    internal fun family(configure: Family.Builder.() -> Unit): Family {
+    fun entity(configure: Entity.() -> Unit): Entity {
+        val newEntity = entityService.obtain()
+        createdEntities.push(newEntity)
+        newEntity.configure()
+        return newEntity
+    }
+
+    fun family(configure: Family.Builder.() -> Unit): Family {
         val newFamily = familyService.family(configure)
         newFamilies.push(newFamily)
         return newFamily
@@ -74,7 +79,24 @@ class World(
 
     internal fun initialize(systemService: SystemService) {
         this.systemService = systemService
-        systemService.engineInitialized()
+        systemService.worldInitialized()
+    }
+
+    @Synchronized
+    fun postUpdate(block: () -> Unit) {
+        deferredUpdates.addLast(block)
+    }
+
+    private fun processDeferredUpdates() {
+        while(deferredUpdates.isNotEmpty()) {
+            val update = deferredUpdates.removeFirst()
+            update.invoke()
+        }
+    }
+
+    @Synchronized
+    fun release(entity: Entity) {
+        releasedEntities.push(entity)
     }
 
     private fun releaseEntities() {
@@ -97,25 +119,33 @@ class World(
         }
     }
 
+    inline fun <reified T : System> system() = systems.firstOrNull { it is T }
+
+    @Synchronized
     fun update(entity: Entity) {
         updatedEntities.push(entity)
     }
 
     fun update(delta: Float) {
-        systemService.engineLoopStart()
+        systemService.worldLoopStart()
+
+        taskService.startUpdateTasks()
+        systemService.updateSystemLoop(delta)
+        taskService.joinUpdateTasks()
 
         eventBus.processEvents()
 
+        processDeferredUpdates()
         releaseEntities()
         updateEntities()
         createEntities()
         createFamilies()
 
-        systemService.updateSystemLoop(delta)
-
+        taskService.startDrawTasks()
         systemService.renderSystemLoop(delta)
+        taskService.joinDrawTasks()
 
-        systemService.engineLoopEnd()
+        systemService.worldLoopEnd()
     }
 
     fun update() {
@@ -138,16 +168,10 @@ class World(
 
     class Builder {
         private val diBuilder = DependencyInjection.Builder()
-        private var isAsyncSystems = false
+        private var useGraph = false
         private val systems: MutableList<Class<*>> = mutableListOf()
 
-        var name: String = ""
-
-        fun asyncSystems(vararg system: Class<*>) {
-            isAsyncSystems = true
-            systems.clear()
-            systems.addAll(system)
-        }
+        var identifier: Any = ""
 
         fun build(): World {
             diBuilder.singleton<ComponentService>()
@@ -172,23 +196,22 @@ class World(
                 entityService = di.get(),
                 eventBus = di.get(),
                 familyService = di.get(),
-                name
+                taskService = TaskServiceImpl(),
+                identifier
             )
 
-            if (name.isNotBlank())
-                worlds[name] = world
-
-            val systemService = if (isAsyncSystems) {
-                AsynchronousSequentialSystemService.Builder()
-                    .build(systems.map {
-                        di.get(it) as System
-                    })
-            } else {
-                SynchronousSystemService.Builder()
-                    .build(systems.map {
-                        di.get(it) as System
-                    })
+            val addToWorlds = when(identifier) {
+                is String -> (identifier as String).isNotBlank()
+                else -> true
             }
+
+            if (addToWorlds)
+                worlds[identifier] = world
+
+            val systemInstances = systems.map { di.get(it) as System }
+
+            val systemService = if (useGraph) SynchronousSystemService.Builder().buildGraph(systemInstances)
+                else SynchronousSystemService.Builder().build(systemInstances)
 
             world.initialize(systemService)
 
@@ -200,17 +223,23 @@ class World(
         }
 
         fun systems(vararg system: Class<*>) {
-            isAsyncSystems = false
+            useGraph = false
+            systems.clear()
+            systems.addAll(system)
+        }
+
+        fun systemGraph(vararg system: Class<*>) {
+            useGraph = true
             systems.clear()
             systems.addAll(system)
         }
     }
 
     companion object {
-        private val worlds = mutableMapOf<String, World>()
+        private val worlds = mutableMapOf<Any, World>()
 
-        fun get(name: String) = worlds[name]!!
-        fun getOrNull(name: String) = worlds[name]
+        fun get(identifier: Any) = worlds[identifier]!!
+        fun getOrNull(identifier: Any) = worlds[identifier]
     }
 }
 

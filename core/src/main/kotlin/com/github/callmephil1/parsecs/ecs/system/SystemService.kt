@@ -6,9 +6,9 @@ import kotlinx.coroutines.*
 internal interface SystemService {
     val systems: List<System>
 
-    fun engineInitialized()
-    fun engineLoopEnd()
-    fun engineLoopStart()
+    fun worldInitialized()
+    fun worldLoopEnd()
+    fun worldLoopStart()
     fun renderSystemLoop(delta: Float)
     fun updateSystemLoop(delta: Float)
 }
@@ -23,22 +23,22 @@ internal class AsynchronousSystemService(
 
     private val scope = CoroutineScope(Dispatchers.Default)
 
-    override fun engineInitialized() {
+    override fun worldInitialized() {
         mutableSetOf<System>().also {
             it.addAll(monitorSystems)
             it.addAll(renderSystems)
             it.addAll(updateSystemDependencyGraph.keys)
         }.forEach {
-            it.engineInitialized()
+            it.worldInitialized()
         }
     }
 
-    override fun engineLoopEnd() {
-        monitorSystems.forEach { it.engineLoopEnd() }
+    override fun worldLoopEnd() {
+        monitorSystems.forEach { it.worldLoopEnd() }
     }
 
-    override fun engineLoopStart() {
-        monitorSystems.forEach { it.engineLoopStart() }
+    override fun worldLoopStart() {
+        monitorSystems.forEach { it.worldLoopStart() }
     }
 
     override fun renderSystemLoop(delta: Float) {
@@ -50,13 +50,12 @@ internal class AsynchronousSystemService(
     }
 
     override fun updateSystemLoop(delta: Float) {
-        val jobs = ArrayList<Job>(updateSystemDependencyGraph.keys.size)
         val systemJobs = mutableMapOf<AsynchronousUpdateSystem, Job>()
 
         for (step in updateExecutionSteps) {
             for (system in step) {
                 systemJobs[system] = scope.launch {
-                    updateSystemDependencyGraph[system]!!.map { systemJobs[it]!! }.joinAll()
+                    updateSystemDependencyGraph[system]!!.forEach { systemJobs[it]!!.join() }
                     monitorSystems.forEach { it.systemLoopStart(system) }
                     system.update(delta)
                     monitorSystems.forEach { it.systemLoopEnd(system) }
@@ -65,7 +64,7 @@ internal class AsynchronousSystemService(
         }
 
         runBlocking {
-            jobs.joinAll()
+            systemJobs.values.joinAll()
         }
     }
 
@@ -86,7 +85,7 @@ internal class AsynchronousSystemService(
                     }
                 )
 
-                val groupDeps = system.descriptor.dependencies.filterIsInstance<Dependency.Group>().map { it.name }
+                val groupDeps = system.descriptor.dependencies.filterIsInstance<Dependency.Group>().map { it.identifier }
                 dag.addWithDependencies(
                     system,
                     groupDeps.map { group ->
@@ -115,22 +114,22 @@ internal class AsynchronousSequentialSystemService internal constructor(
 
     private val scope = CoroutineScope(Dispatchers.Default)
 
-    override fun engineInitialized() {
+    override fun worldInitialized() {
         mutableSetOf<System>().also {
             it.addAll(monitorSystems)
             it.addAll(renderSystems)
             it.addAll(updateExecutionSteps.flatten())
         }.forEach {
-            it.engineInitialized()
+            it.worldInitialized()
         }
     }
 
-    override fun engineLoopEnd() {
-        monitorSystems.forEach { it.engineLoopEnd() }
+    override fun worldLoopEnd() {
+        monitorSystems.forEach { it.worldLoopEnd() }
     }
 
-    override fun engineLoopStart() {
-        monitorSystems.forEach { it.engineLoopStart() }
+    override fun worldLoopStart() {
+        monitorSystems.forEach { it.worldLoopStart() }
     }
 
     override fun renderSystemLoop(delta: Float) {
@@ -175,7 +174,7 @@ internal class AsynchronousSequentialSystemService internal constructor(
                     }
                 )
 
-                val groupDeps = system.descriptor.dependencies.filterIsInstance<Dependency.Group>().map { it.name }
+                val groupDeps = system.descriptor.dependencies.filterIsInstance<Dependency.Group>().map { it.identifier }
                 dag.addWithDependencies(
                     system,
                     groupDeps.map { group ->
@@ -201,18 +200,18 @@ internal class SynchronousSystemService internal constructor(
     private val updateSystems: List<UpdateSystem>
 ) : SystemService {
 
-    override fun engineInitialized() {
+    override fun worldInitialized() {
         systems.forEach {
-            it.engineInitialized()
+            it.worldInitialized()
         }
     }
 
-    override fun engineLoopEnd() {
-        monitorSystems.forEach { it.engineLoopEnd() }
+    override fun worldLoopEnd() {
+        monitorSystems.forEach { it.worldLoopEnd() }
     }
 
-    override fun engineLoopStart() {
-        monitorSystems.forEach { it.engineLoopStart() }
+    override fun worldLoopStart() {
+        monitorSystems.forEach { it.worldLoopStart() }
     }
 
     override fun renderSystemLoop(delta: Float) {
@@ -242,6 +241,39 @@ internal class SynchronousSystemService internal constructor(
                 monitorSystems = monitorSystems,
                 renderSystems = renderSystems,
                 updateSystems = updateSystems
+            )
+        }
+
+        internal fun buildGraph(systems: List<System>): SynchronousSystemService {
+            val monitorSystems = systems.filterIsInstance<MonitorSystem>()
+            val renderSystems = systems.filterIsInstance<RenderSystem>()
+            val updateSystems = systems.filterIsInstance<UpdateSystem>()
+
+            val dag = DirectedAcyclicGraph<UpdateSystem>()
+            updateSystems.forEach { system ->
+
+                val systemDeps = system.descriptor.dependencies.filterIsInstance<Dependency.System>().map { it.clazz }
+                dag.addWithDependencies(
+                    system,
+                    systemDeps.mapNotNull { dep ->
+                        updateSystems.firstOrNull { it != system && dep.isInstance(it) }
+                    }
+                )
+
+                val groupDeps = system.descriptor.dependencies.filterIsInstance<Dependency.Group>().map { it.identifier }
+                dag.addWithDependencies(
+                    system,
+                    groupDeps.map { group ->
+                        updateSystems.filter { it != system && it.descriptor.groups.contains(group) }
+                    }.flatten()
+                )
+            }
+
+            return SynchronousSystemService(
+                systems,
+                monitorSystems = monitorSystems,
+                renderSystems = renderSystems,
+                updateSystems = dag.toExecutionSteps().flatten()
             )
         }
     }
