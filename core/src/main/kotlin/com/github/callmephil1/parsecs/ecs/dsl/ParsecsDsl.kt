@@ -3,7 +3,10 @@ package com.github.callmephil1.parsecs.ecs.dsl
 import com.github.callmephil1.parsecs.ecs.entity.Entity
 import com.github.callmephil1.parsecs.ecs.entity.EntityRef
 import com.github.callmephil1.parsecs.ecs.family.Family
+import com.github.callmephil1.parsecs.ecs.task.Task
 import com.github.callmephil1.parsecs.ecs.world.World
+import kotlinx.coroutines.Dispatchers
+import kotlin.coroutines.CoroutineContext
 
 interface ParsecsDsl {
     val world: World
@@ -23,10 +26,10 @@ interface ParsecsDsl {
     operator fun <T : Any> EntityRef.get(component: Class<T>) = this.entity[component]
     operator fun <T : Any> EntityRef.get(component: Component<T>) = this.entity[component]
 
-    fun Entity.has(component: Class<*>) = world.getMapper(component).has(this)
-    fun Entity.has(component: Component<*>) = world.getMapper(component).has(this)
-    fun EntityRef.has(component: Class<*>) = this.entity.has(component)
-    fun EntityRef.has(component: Component<*>) = this.entity.has(component)
+    infix fun Entity.has(component: Class<*>) = world.getMapper(component).has(this)
+    infix fun Entity.has(component: Component<*>) = world.getMapper(component).has(this)
+    infix fun EntityRef.has(component: Class<*>) = this.entity.has(component)
+    infix fun EntityRef.has(component: Component<*>) = this.entity.has(component)
     fun Entity.hasAll(vararg component: Class<*>) = component.all { has(it) }
     fun Entity.hasAll(vararg component: Component<*>) = component.all { has(it) }
     fun EntityRef.hasAll(vararg component: Class<*>) = component.all { this.entity.has(it) }
@@ -59,4 +62,11 @@ interface ParsecsDsl {
     fun Family.Builder.all(vararg component: Component<*>) = this.all(*component.map { it.clazz }.toTypedArray())
     fun Family.Builder.any(vararg component: Component<*>) = this.any(*component.map { it.clazz }.toTypedArray())
     fun Family.Builder.none(vararg component: Component<*>) = this.none(*component.map { it.clazz }.toTypedArray())
+
+    fun Task.scheduleToDraw(context: CoroutineContext = Dispatchers.Default) = world.scheduleToDraw(this, context)
+    fun Task.scheduleToUpdate(context: CoroutineContext = Dispatchers.Default) = world.scheduleToUpdate(this, context)
+    fun Task.scheduleUnconfined(context: CoroutineContext = Dispatchers.Default) = world.scheduleUnconfined(this, context)
+
+    fun <T> chainTask(onComplete: (T) -> Unit, onExecute: suspend () -> T) = world.chainTask(onComplete, onExecute)
+    fun task(onComplete: () -> Unit = {}, onExecute: suspend () -> Unit) = world.task(onComplete, onExecute)
 }
