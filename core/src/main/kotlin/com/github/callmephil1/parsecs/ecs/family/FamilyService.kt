@@ -33,7 +33,8 @@ class FamilyService(
 
     fun release(entity: Entity, with: Entity?) {
         _families.forEach {
-            it.remove(entity, with)
+            if (it.has(entity))
+                it.remove(entity, with)
         }
     }
 

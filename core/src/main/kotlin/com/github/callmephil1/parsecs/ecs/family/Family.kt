@@ -65,6 +65,9 @@ class Family internal constructor(
     }
 
     internal fun remove(entity: Entity, with: Entity?) {
+        if (entity.index >= count)
+            return
+
         when {
             with == null -> {
                 _entities[entity.index] = null
