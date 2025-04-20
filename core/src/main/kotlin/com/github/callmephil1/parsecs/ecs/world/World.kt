@@ -38,7 +38,7 @@ class World(
     private val releasedEntities = Stack<Entity>()
     private val newFamilies = Stack<Family>()
 
-    val entities get() = entityService.entities
+    val entities get() = entityService.entities.toBag()
     val systems get() = systemService.systems
 
     private fun createEntities() {
