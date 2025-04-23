@@ -29,7 +29,7 @@ class World(
 
     private lateinit var systemService: SystemService
 
-    private val logger = KotlinLogging.logger {  }.debug {  }
+    private val logger = KotlinLogging.logger {  }
     private val stopWatch = StopWatch()
 
     private val createdEntities = Stack<Entity>()
@@ -169,7 +169,7 @@ class World(
     class Builder {
         private val diBuilder = DependencyInjection.Builder()
         private var useGraph = false
-        private val systems: MutableList<Class<*>> = mutableListOf()
+        private val systems: MutableList<Class<out System>> = mutableListOf()
 
         var identifier: Any = ""
 
@@ -208,7 +208,7 @@ class World(
             if (addToWorlds)
                 worlds[identifier] = world
 
-            val systemInstances = systems.map { di.get(it) as System }
+            val systemInstances = systems.map { di.get(it) }
 
             val systemService = if (useGraph) SynchronousSystemService.Builder().buildGraph(systemInstances)
                 else SynchronousSystemService.Builder().build(systemInstances)
@@ -222,13 +222,13 @@ class World(
             diBuilder.configure()
         }
 
-        fun systems(vararg system: Class<*>) {
+        fun systems(vararg system: Class<out System>) {
             useGraph = false
             systems.clear()
             systems.addAll(system)
         }
 
-        fun systemGraph(vararg system: Class<*>) {
+        fun systemGraph(vararg system: Class<out System>) {
             useGraph = true
             systems.clear()
             systems.addAll(system)

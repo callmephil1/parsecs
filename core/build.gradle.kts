@@ -32,7 +32,7 @@ plugins {
 
 archivesName = "parsecs-core"
 group = "com.github.callmephil"
-version = generateVersion()
+version = "1.0.1"
 
 repositories {
     mavenCentral()
@@ -45,12 +45,13 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation(kotlin("test"))
-
+    runtimeOnly("org.slf4j:slf4j-nop:2.0.9")
 }
 
 tasks.shadowJar {
-    archiveClassifier.set("")
-    relocate("io.github.oshai.kotlinlogging", "parsecs.shaded.kotlinlogging")
+    archiveClassifier.set("all")
+    relocate("io.github.oshai.kotlinlogging", "shadow.io.github.oshai.kotlinlogging")
+    minimize()
 }
 
 tasks.test {

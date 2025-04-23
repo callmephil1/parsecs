@@ -1,8 +1,10 @@
 package com.github.callmephil1.parsecs.ecs.system
 
+import com.github.callmephil1.parsecs.ecs.system.System as ISystem
+
 sealed class Dependency {
     class Group(val identifier: Any) : Dependency()
-    class System(val clazz: Class<*>) : Dependency()
+    class System(val clazz: Class<out ISystem>) : Dependency()
 }
 
 class SystemDescriptor internal constructor(
@@ -20,11 +22,11 @@ class SystemDescriptor internal constructor(
             )
         }
 
-        fun dependsOn(vararg group: String) {
+        fun dependsOn(vararg group: Any) {
             dependencies.addAll(group.map { Dependency.Group(it) })
         }
 
-        fun dependsOn(vararg system: Class<*>) {
+        fun dependsOn(vararg system: Class<out ISystem>) {
             dependencies.addAll(system.map { Dependency.System(it) })
         }
 
