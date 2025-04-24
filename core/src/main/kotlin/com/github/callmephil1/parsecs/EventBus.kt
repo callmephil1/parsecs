@@ -56,4 +56,8 @@ class EventBus {
     inline fun <reified T : Any> register(noinline listener: (T) -> Unit) = register(T::class.java, listener)
 
     fun unregister(listener: EventBusListener<*>): Unit = lock.withLock { listeners[listener.clazz]?.remove(listener) }
+
+    companion object {
+        val global = EventBus()
+    }
 }

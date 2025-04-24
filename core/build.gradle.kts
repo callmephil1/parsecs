@@ -32,7 +32,7 @@ plugins {
 
 archivesName = "parsecs-core"
 group = "com.github.callmephil"
-version = "1.0.1"
+version = "1.0.2"
 
 repositories {
     mavenCentral()
