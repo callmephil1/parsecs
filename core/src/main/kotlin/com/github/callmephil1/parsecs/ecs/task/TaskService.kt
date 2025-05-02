@@ -4,6 +4,7 @@ import kotlinx.coroutines.*
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 class TaskDependencyNotStarted : Exception("Started a task before all it's dependencies had started.")
 
@@ -16,6 +17,8 @@ internal enum class Phase {
 }
 
 interface TaskService {
+
+    fun cancelAllTasks()
 
     fun <T> chainTask(onComplete: (T) -> Unit, onExecute: suspend () -> T): Task
 
@@ -30,6 +33,7 @@ interface TaskService {
 
 class TaskServiceImpl : TaskService {
     private var phase: Phase = Phase.PreUpdate
+    private val scope = CoroutineScope(EmptyCoroutineContext)
 
     private val lock = ReentrantLock()
     private val runningLock = ReentrantLock()
@@ -39,6 +43,12 @@ class TaskServiceImpl : TaskService {
 
     private val runningDrawTasks: MutableList<Task> = mutableListOf()
     private val runningUpdateTasks: MutableList<Task> = mutableListOf()
+
+    override fun cancelAllTasks() {
+        drawTasks.clear()
+        updateTasks.clear()
+        scope.cancel("'cancelAllTasks' was called and canceled all current and future tasks")
+    }
 
     override fun <T> chainTask(onComplete: (T) -> Unit, onExecute: suspend () -> T): Task = ChainTask(
         onExecuteFunc = onExecute,
@@ -159,13 +169,19 @@ class TaskServiceImpl : TaskService {
     @OptIn(DelicateCoroutinesApi::class)
     private fun taskExecutor(task: Task, context: CoroutineContext, start: CoroutineStart = CoroutineStart.DEFAULT) : Job {
         val dependencies = getDependencyJobs(task)
-        return GlobalScope.launch(
+
+        val job = scope.launch(
             context = context,
             start = start
         ) {
             dependencies.forEach { it.join() }
             task.onExecute()
         }
+        job.invokeOnCompletion { throwable ->
+            task.thrownException = throwable
+        }
+
+        return job
     }
 
     override fun task(onComplete: () -> Unit, onExecute: suspend () -> Unit): Task = AnonymousTask(onExecute, onComplete)

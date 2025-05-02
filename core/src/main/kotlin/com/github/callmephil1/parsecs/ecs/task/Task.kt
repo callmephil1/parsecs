@@ -7,18 +7,21 @@ abstract class Task {
 
     var job: Job? = null
         internal set
+    var thrownException: Throwable? = null
+        internal set
 
     open fun onComplete() {}
     abstract suspend fun onExecute()
 
-    fun runAfter(vararg task: Task) {
+    fun runAfter(vararg task: Task): Task {
         task.forEach { dependencies.add(it) }
+        return this
     }
 }
 
 internal class AnonymousTask(
     private val onExecuteFunc: suspend () -> Unit,
-    private val onCompleteFunc: () -> Unit = {}
+    private val onCompleteFunc: () -> Unit
 ) : Task() {
     override suspend fun onExecute() {
         onExecuteFunc()
@@ -33,13 +36,14 @@ internal class ChainTask<T>(
     private val onExecuteFunc: suspend () -> T,
     private val onCompleteFunc: (T) -> Unit
 ) : Task() {
-    var value: T? = null
+    private lateinit var wrapperFunc: () -> Unit
 
     override suspend fun onExecute() {
-        value = onExecuteFunc()
+        val value = onExecuteFunc()
+        wrapperFunc = { onCompleteFunc(value) }
     }
 
     override fun onComplete() {
-        onCompleteFunc(value!!)
+        wrapperFunc()
     }
 }
